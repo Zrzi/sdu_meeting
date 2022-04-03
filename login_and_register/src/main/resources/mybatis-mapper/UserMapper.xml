@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.meeting.login_and_register.mapper.UserMapper">
+
+    <resultMap id="user" type="com.meeting.common.entity.User">
+        <id property="id" column="user_id" />
+        <result property="username" column="username" />
+        <result property="email" column="email" />
+        <result property="password" column="password" />
+        <result property="profile" column="profile" />
+    </resultMap>
+    
+    <select id="findUserById" parameterType="Long" resultMap="user">
+        SELECT `user_id`, `username`, `password`, `email`, `profile`
+        FROM `user`
+        WHERE `user_id` = #{id}
+    </select>
+
+    <select id="findUserByUsername" parameterType="String" resultMap="user">
+        SELECT `user_id`, `username`, `password`, `email`, `profile`
+        FROM `user`
+        WHERE `username` = #{username}
+    </select>
+
+    <select id="findUserByEmail" parameterType="String" resultMap="user">
+        SELECT `user_id`, `username`, `password`, `email`, `profile`
+        FROM `user`
+        WHERE `email` = #{email}
+    </select>
+
+    <insert id="insertUser" parameterType="com.meeting.common.entity.User"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="user_id">
+        INSERT INTO `user` (`username`, `password`, `email`, `profile`)
+        VALUES (#{user.username}, #{user.password}, #{user.email}, #{user.profile})
+    </insert>
+
+    <update id="updateUser" parameterType="com.meeting.common.entity.User">
+        UPDATE `user`
+        SET `username` = #{user.username},
+            `password` = #{user.password},
+            `email` = #{user.email},
+            `profile` = #{user.profile}
+        WHERE `user_id` = #{user.id}
+    </update>
+
+</mapper>

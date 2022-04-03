@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.meeting.login_and_register.mapper.UserRoleMapper">
+
+    <resultMap id="user_role" type="com.meeting.common.entity.UserRole">
+        <id property="uid" column="user_id" />
+        <id property="rid" column="role_id" />
+    </resultMap>
+
+    <select id="findUserRoleByUidAndRid" parameterType="Long" resultMap="user_role">
+        SELECT `user_id`, `role_id`
+        FROM `user_role`
+        WHERE `user_id` = #{uid}
+          AND `role_id` = #{rid}
+    </select>
+
+    <select id="findUserRolesByUid" parameterType="Long" resultMap="user_role">
+        SELECT `user_id`, `role_id`
+        FROM `user_role`
+        WHERE `user_id` = #{uid}
+    </select>
+
+    <insert id="insertUserRole" parameterType="Long">
+        INSERT INTO `user_role` (`user_id`, `role_id`)
+        VALUES (#{uid}, #{rid})
+    </insert>
+
+    <insert id="insertNormalUser" parameterType="Long">
+        INSERT INTO `user_role` (`user_id`, `role_id`)
+        VALUES (#{uid}, 1)
+    </insert>
+
+</mapper>

@@ -1,0 +1,8 @@
+server:
+  port: 8001
+
+registry:
+  ip: localhost
+  port: 10000
+  url: http://${registry.ip}:${registry.port}/registerProvider
+  serviceName: log

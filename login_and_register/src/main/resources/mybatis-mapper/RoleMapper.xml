@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.meeting.login_and_register.mapper.RoleMapper">
+
+    <resultMap id="role" type="com.meeting.common.entity.Role">
+        <id property="id" column="role_id" />
+        <result property="authority" column="authority" />
+    </resultMap>
+
+    <select id="findRoleById" parameterType="Long" resultMap="role">
+        SELECT `role_id`, `authority`
+        FROM `role`
+        WHERE `role_id` = #{id}
+    </select>
+
+    <select id="findRoleByAuthority" parameterType="String" resultMap="role">
+        SELECT `role_id`, `authority`
+        FROM `role`
+        WHERE `authority` = #{authority}
+    </select>
+
+    <insert id="insertRole" parameterType="com.meeting.common.entity.Role"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="role_id">
+        INSERT INTO `role` (`authority`)
+        VALUES (`role.authority`)
+    </insert>
+
+    <update id="updateRole" parameterType="com.meeting.common.entity.Role">
+        UPDATE `role`
+        SET `authority` = #{role.authority}
+        WHERE `role_id` = #{role.id}
+    </update>
+
+</mapper>
