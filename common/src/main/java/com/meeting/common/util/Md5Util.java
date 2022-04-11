@@ -5,7 +5,6 @@ import org.springframework.util.DigestUtils;
 
 import java.nio.charset.StandardCharsets;
 
-@Component
 public class Md5Util {
 
     public String encrypt(String password) {

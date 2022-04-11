@@ -17,7 +17,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Enumeration;
 
-@Controller
+// @Controller
 public class StartUpRunner implements CommandLineRunner {
 
     @Value("${server.port}")

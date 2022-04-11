@@ -1,0 +1,17 @@
+server:
+  port: 8080
+
+router:
+  services:
+    - serviceName: login_and_register
+      authenticate: false
+      persistent: false
+      path: /login_and_register
+      uri:
+        - 127.0.0.1:8000
+    - serviceName: log
+      authenticate: true
+      persistent: false
+      path: /log
+      uri:
+        - 127.0.0.1:8001
