@@ -9,7 +9,13 @@ public class User {
     private String email;
     private String password;
     private String profile;
+    private String code;
     private List<Role> authorities;
+    /**
+     * status=0，表示用户已经注册，但未验证
+     * status=1，表示用户已经注册，并且已经验证了
+     */
+    private int status;
 
     public User() {}
 
@@ -53,6 +59,22 @@ public class User {
         this.profile = profile;
     }
 
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
     public List<Role> getAuthorities() {
         return authorities;
     }
@@ -68,7 +90,10 @@ public class User {
                 ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
+                ", profile='" + profile + '\'' +
+                ", code='" + code + '\'' +
                 ", authorities=" + authorities +
+                ", status=" + status +
                 '}';
     }
 

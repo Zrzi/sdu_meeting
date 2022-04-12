@@ -8,6 +8,8 @@ import com.meeting.gateway.entity.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -22,7 +24,7 @@ import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.List;
 
-@WebFilter(filterName = "RouterFilter")
+@WebFilter(filterName = "RouterFilter", urlPatterns = {"/*"})
 @Component
 public class RouterFilter implements Filter {
 
@@ -59,7 +61,7 @@ public class RouterFilter implements Filter {
         }
 
         if (service == null) {
-            responseData.setCode(400);
+            responseData.setCode(403);
             responseData.setMessage("不存在的路径");
         } else {
             // 需要权限校验
@@ -67,7 +69,7 @@ public class RouterFilter implements Filter {
             if (service.isAuthenticate() &&
                     ((token = httpServletRequest.getHeader("token")) == null ||
                             jwtTokenUtil.validateToken(token))) {
-                responseData.setCode(400);
+                responseData.setCode(404);
                 responseData.setMessage("没有权限");
             } else {
                 // 获取下一个的uri
@@ -116,7 +118,11 @@ public class RouterFilter implements Filter {
         while (parameterNames.hasMoreElements()) {
             String name = parameterNames.nextElement();
             String[] value = request.getParameterValues(name);
-            parameters.add(name, value);
+            if (value.length == 1) {
+                parameters.add(name, value[0]);
+            } else {
+                parameters.add(name, value);
+            }
         }
 
         return new HttpEntity<>(parameters, headers);
@@ -125,18 +131,18 @@ public class RouterFilter implements Filter {
     private ResponseData handle(HttpEntity<MultiValueMap<String, Object>> httpEntity, String method, String url) {
         ResponseData responseData = new ResponseData();
         switch (method) {
-            case "get":
+            case "GET":
                 responseData =
-                        restTemplate.getForObject(url, ResponseData.class, httpEntity);
+                        restTemplate.exchange(url, HttpMethod.GET, httpEntity, ResponseData.class).getBody();
                 break;
-            case "post":
+            case "POST":
                 responseData =
-                        restTemplate.postForObject(url, httpEntity, ResponseData.class);
+                        restTemplate.exchange(url, HttpMethod.POST, httpEntity, ResponseData.class).getBody();
                 break;
-            case "put":
+            case "PUT":
                 // todo httpClient
                 break;
-            case "delete":
+            case "DELETE":
                 // todo httpClient
                 break;
             default:

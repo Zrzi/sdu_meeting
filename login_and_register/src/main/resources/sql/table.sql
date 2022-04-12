@@ -4,6 +4,8 @@ CREATE TABLE `user`(
     `email` VARCHAR(64) UNIQUE NOT NULL,
     `password` VARCHAR(32) NOT NULL,
     `profile` VARCHAR(32),
+    `code` VARCHAR(256),
+    `status` INTEGER,
     PRIMARY KEY (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -41,3 +43,7 @@ SET `email` = '201900301043@mail.sdu.edu.cn'
 WHERE `user_id` = 3;
 
 ALTER TABLE `user` MODIFY COLUMN `email` VARCHAR(64) UNIQUE NOT NULL;
+
+ALTER TABLE `user` ADD COLUMN `code` VARCHAR(256);
+
+ALTER TABLE `user` ADD COLUMN `status` INTEGER;

@@ -31,6 +31,13 @@ public interface UserMapper {
     User findUserByEmail(@Param("email") String email);
 
     /**
+     * 根据验证码返回User对象
+     * @param code 验证码
+     * @return 用户对象
+     */
+    User findUserByCode(@Param("code") String code);
+
+    /**
      * 添加用户记录
      * @param user 用户
      * @return 用户id

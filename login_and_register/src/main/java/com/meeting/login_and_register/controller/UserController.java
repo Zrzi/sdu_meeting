@@ -2,16 +2,15 @@ package com.meeting.login_and_register.controller;
 
 import com.meeting.common.entity.ResponseData;
 import com.meeting.common.entity.User;
+import com.meeting.common.exception.CodeNotFoundException;
+import com.meeting.common.exception.IllegalUsernameException;
 import com.meeting.common.exception.UserExistException;
 import com.meeting.login_and_register.service.UserService;
 import com.meeting.common.util.JwtTokenUtil;
 import com.meeting.common.util.Md5Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @CrossOrigin(origins = {"*"})
@@ -77,8 +76,30 @@ public class UserController {
             responseData = new ResponseData(200, "ok");
             responseData.getData().put("uid", uid);
             return responseData;
+        } catch (IllegalUsernameException exception) {
+            responseData = new ResponseData(400, exception.getMsg());
+            return responseData;
         } catch (UserExistException exception) {
             responseData = new ResponseData(400, exception.getMsg());
+            return responseData;
+        } catch (RuntimeException exception) {
+            responseData = new ResponseData(400, exception.getMessage());
+            return responseData;
+        }
+    }
+
+    @ResponseBody
+    @GetMapping("/checkCode")
+    public ResponseData checkCode(@RequestParam("code") String code) {
+        ResponseData responseData = new ResponseData();
+        try {
+            userService.checkCode(code);
+            responseData.setCode(200);
+            responseData.setMessage("ok");
+            return responseData;
+        } catch (CodeNotFoundException exception) {
+            responseData.setCode(400);
+            responseData.setMessage(exception.getMsg());
             return responseData;
         }
     }

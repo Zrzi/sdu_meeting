@@ -10,30 +10,38 @@
         <result property="email" column="email" />
         <result property="password" column="password" />
         <result property="profile" column="profile" />
+        <result property="code" column="code" />
+        <result property="status" column="status" />
     </resultMap>
     
     <select id="findUserById" parameterType="Long" resultMap="user">
         SELECT `user_id`, `username`, `password`, `email`, `profile`
         FROM `user`
-        WHERE `user_id` = #{id}
+        WHERE `user_id` = #{id} AND `status` = 1
     </select>
 
     <select id="findUserByUsername" parameterType="String" resultMap="user">
         SELECT `user_id`, `username`, `password`, `email`, `profile`
         FROM `user`
-        WHERE `username` = #{username}
+        WHERE `username` = #{username} AND `status` = 1
     </select>
 
     <select id="findUserByEmail" parameterType="String" resultMap="user">
         SELECT `user_id`, `username`, `password`, `email`, `profile`
         FROM `user`
-        WHERE `email` = #{email}
+        WHERE `email` = #{email} AND `status` = 1
+    </select>
+
+    <select id="findUserByCode" parameterType="String" resultMap="user">
+        SELECT `user_id`, `username`, `password`, `email`, `profile`, `code`
+        FROM `user`
+        WHERE `code` = #{code} AND `status` = 0
     </select>
 
     <insert id="insertUser" parameterType="com.meeting.common.entity.User"
             useGeneratedKeys="true" keyProperty="id" keyColumn="user_id">
-        INSERT INTO `user` (`username`, `password`, `email`, `profile`)
-        VALUES (#{user.username}, #{user.password}, #{user.email}, #{user.profile})
+        INSERT INTO `user` (`username`, `password`, `email`, `profile`, `code`, `status`)
+        VALUES (#{user.username}, #{user.password}, #{user.email}, #{user.profile}, #{user.code}, 0)
     </insert>
 
     <update id="updateUser" parameterType="com.meeting.common.entity.User">
@@ -41,7 +49,9 @@
         SET `username` = #{user.username},
             `password` = #{user.password},
             `email` = #{user.email},
-            `profile` = #{user.profile}
+            `profile` = #{user.profile},
+            `code` = #{user.code},
+            `status` = #{user.status}
         WHERE `user_id` = #{user.id}
     </update>
 
