@@ -16,8 +16,8 @@ public class GlobalExceptionHandler {
         // Todo 日志记录
         System.out.println(exception.getMessage());
         Map<String, Object> map = new HashMap<>();
-        map.put("code", 400);
-        map.put("message", exception.getMessage());
+        map.put("code", 500);
+        map.put("message", "服务器出现异常");
         return map;
     }
 

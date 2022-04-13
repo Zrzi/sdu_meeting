@@ -4,14 +4,19 @@ server:
 router:
   services:
     - serviceName: login_and_register
-      authenticate: false
-      persistent: false
       path: /login_and_register
       uri:
         - http://127.0.0.1:8000
-    - serviceName: log
-      authenticate: true
-      persistent: false
-      path: /log
-      uri:
-        - http://127.0.0.1:8001
+      apis:
+        - path: /login
+          authenticate: false
+          persistent: false
+        - path: /register
+          authenticate: false
+          persistent: false
+        - path: /code
+          authenticate: false
+          persistent: false
+        - path: /testAuthority
+          authenticate: true
+          persistent: false

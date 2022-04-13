@@ -109,8 +109,14 @@ public class UserController {
             responseData = new ResponseData(200, "ok");
             responseData.getData().put("uid", uid);
             return responseData;
-        } catch (CodeNotFoundException | UsernameNotFoundException | EmailNotFoundException exception) {
-            responseData = new ResponseData(400, exception.getMessage());
+        } catch (CodeNotFoundException exception) {
+            responseData = new ResponseData(400, exception.getMsg());
+            return responseData;
+        } catch (UsernameNotFoundException exception) {
+            responseData = new ResponseData(400, exception.getMsg());
+            return responseData;
+        } catch (EmailNotFoundException exception) {
+            responseData = new ResponseData(400, exception.getMsg());
             return responseData;
         }
     }

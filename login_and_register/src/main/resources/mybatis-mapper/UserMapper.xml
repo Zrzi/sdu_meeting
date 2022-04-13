@@ -23,10 +23,22 @@
     <select id="findUserByUsername" parameterType="String" resultMap="user">
         SELECT `user_id`, `username`, `password`, `email`, `profile`
         FROM `user`
+        WHERE `username` = #{username}
+    </select>
+
+    <select id="findActiveUserByUsername" parameterType="String" resultMap="user">
+        SELECT `user_id`, `username`, `password`, `email`, `profile`
+        FROM `user`
         WHERE `username` = #{username} AND `status` = 1
     </select>
 
     <select id="findUserByEmail" parameterType="String" resultMap="user">
+        SELECT `user_id`, `username`, `password`, `email`, `profile`
+        FROM `user`
+        WHERE `email` = #{email}
+    </select>
+
+    <select id="findActiveUserByEmail" parameterType="String" resultMap="user">
         SELECT `user_id`, `username`, `password`, `email`, `profile`
         FROM `user`
         WHERE `email` = #{email} AND `status` = 1

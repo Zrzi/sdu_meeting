@@ -5,20 +5,18 @@ import java.util.Arrays;
 public class Service {
 
     private String serviceName;
-    private boolean authenticate;
-    private boolean persistent;
     private String path;
     private String[] uri;
+    private Api[] apis;
     private final AtomicCounter counter = new AtomicCounter();
 
     public Service() {}
 
-    public Service(String serviceName, boolean authenticate, boolean persistent, String path, String[] uri) {
+    public Service(String serviceName, String path, String[] uri, Api[] apis) {
         this.serviceName = serviceName;
-        this.authenticate = authenticate;
-        this.persistent = persistent;
         this.path = path;
         this.uri = uri;
+        this.apis = apis;
     }
 
     public String getServiceName() {
@@ -27,22 +25,6 @@ public class Service {
 
     public void setServiceName(String serviceName) {
         this.serviceName = serviceName;
-    }
-
-    public boolean isAuthenticate() {
-        return authenticate;
-    }
-
-    public void setAuthenticate(boolean authenticate) {
-        this.authenticate = authenticate;
-    }
-
-    public boolean isPersistent() {
-        return persistent;
-    }
-
-    public void setPersistent(boolean persistent) {
-        this.persistent = persistent;
     }
 
     public String getPath() {
@@ -61,6 +43,14 @@ public class Service {
         this.uri = uri;
     }
 
+    public Api[] getApis() {
+        return apis;
+    }
+
+    public void setApis(Api[] apis) {
+        this.apis = apis;
+    }
+
     public AtomicCounter getCounter() {
         return counter;
     }
@@ -69,9 +59,10 @@ public class Service {
     public String toString() {
         return "Service{" +
                 "serviceName='" + serviceName + '\'' +
-                ", authenticate=" + authenticate +
                 ", path='" + path + '\'' +
                 ", uri=" + Arrays.toString(uri) +
+                ", apis=" + Arrays.toString(apis) +
+                ", counter=" + counter +
                 '}';
     }
 

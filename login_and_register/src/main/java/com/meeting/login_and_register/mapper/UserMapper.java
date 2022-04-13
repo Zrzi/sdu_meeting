@@ -24,11 +24,25 @@ public interface UserMapper {
     User findUserByUsername(@Param("username") String username);
 
     /**
+     * 根据用户名返回User对象，包括status=0
+     * @param username
+     * @return
+     */
+    User findActiveUserByUsername(@Param("username") String username);
+
+    /**
      * 根据用户邮箱返回User对象
      * @param email 用户邮箱
      * @return 用户对象
      */
     User findUserByEmail(@Param("email") String email);
+
+    /**
+     * 根据用户邮箱返回User对象，包括status=0
+     * @param email 用户邮箱
+     * @return 用户对象
+     */
+    User findActiveUserByEmail(@Param("email") String email);
 
     /**
      * 根据验证码返回User对象

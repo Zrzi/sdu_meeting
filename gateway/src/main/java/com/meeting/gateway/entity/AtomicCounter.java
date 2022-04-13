@@ -10,13 +10,13 @@ public class AtomicCounter {
         atomic = new AtomicInteger(0);
     }
 
-    public int autoIncrement() {
+    public int getAndIncrement() {
         int prev, current;
         do {
             prev = atomic.get();
             current = (prev == Integer.MAX_VALUE ? 0 : prev + 1);
         } while (!atomic.compareAndSet(prev, current));
-        return current;
+        return prev;
     }
 
 }

@@ -45,7 +45,7 @@ public class UserService {
 
     @Transactional(rollbackFor = RuntimeException.class)
     public User loadUserByUsername(String username) {
-        User user = userMapper.findUserByUsername(username);
+        User user = userMapper.findActiveUserByUsername(username);
         if (user == null) {
             return user;
         }
@@ -61,7 +61,7 @@ public class UserService {
 
     @Transactional(rollbackFor = RuntimeException.class)
     public User loadUserByEmail(String email) {
-        User user = userMapper.findUserByEmail(email);
+        User user = userMapper.findActiveUserByEmail(email);
         if (user == null) {
             return user;
         }
@@ -77,24 +77,36 @@ public class UserService {
 
     @Transactional(rollbackFor = RuntimeException.class)
     public void code(String username, String password, String email) {
+        if ((userMapper.findActiveUserByEmail(email)) != null) {
+            throw new UserExistException("邮箱已经存在");
+        }
         if (username.contains("@")) {
             throw new IllegalUsernameException("用户名不合法");
         }
-        if ((userMapper.findUserByUsername(username)) != null) {
-            throw new UserExistException("用户名已经存在");
-        }
-        if ((userMapper.findUserByEmail(email)) != null) {
-            throw new UserExistException("邮箱已经存在");
-        }
+        User user;
         String code = Integer.toString(digitUtil.code(6));
-        User user = new User();
-        user.setUsername(username);
-        user.setEmail(email);
-        user.setPassword(md5Util.encrypt(password));
-        user.setProfile("default.png");
-        user.setCode(code);
-        userMapper.insertUser(user);
-        userRoleMapper.insertNormalUser(user.getId());
+        if ((user = userMapper.findUserByEmail(email)) != null) {
+            // 由于之前判断过，这里只能是未激活的账号，重新发送激活码
+            if (!Objects.equals(username, user.getUsername()) &&
+                    (userMapper.findUserByUsername(username)) != null) {
+                throw new UserExistException("用户名已经存在");
+            }
+            user.setUsername(username);
+            user.setCode(code);
+            userMapper.updateUser(user);
+        } else {
+            if ((userMapper.findUserByUsername(username)) != null) {
+                throw new UserExistException("用户名已经存在");
+            }
+            user = new User();
+            user.setUsername(username);
+            user.setEmail(email);
+            user.setPassword(md5Util.encrypt(password));
+            user.setProfile("default.png");
+            user.setCode(code);
+            userMapper.insertUser(user);
+            userRoleMapper.insertNormalUser(user.getId());
+        }
         String subject = "山大云会议";
         String context = "<p>您的验证码为: "+code+"。</p>";
         try {

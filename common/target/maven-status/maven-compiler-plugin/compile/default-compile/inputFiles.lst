@@ -3,6 +3,7 @@ D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\util\JwtTokenU
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\entity\Message.java
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\entity\Role.java
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\exception\UsernameNotFoundException.java
+D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\exception\PathNotFoundException.java
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\entity\MessageType.java
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\util\DigitUtil.java
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\exception\UserExistException.java
