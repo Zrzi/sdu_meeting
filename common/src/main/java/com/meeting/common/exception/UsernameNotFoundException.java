@@ -1,10 +1,10 @@
 package com.meeting.common.exception;
 
-public class CodeNotFoundException extends RuntimeException {
+public class UsernameNotFoundException extends RuntimeException {
 
     private String msg;
 
-    public CodeNotFoundException(String msg) {
+    public UsernameNotFoundException(String msg) {
         this.msg = msg;
     }
 

@@ -2,9 +2,7 @@ package com.meeting.login_and_register.controller;
 
 import com.meeting.common.entity.ResponseData;
 import com.meeting.common.entity.User;
-import com.meeting.common.exception.CodeNotFoundException;
-import com.meeting.common.exception.IllegalUsernameException;
-import com.meeting.common.exception.UserExistException;
+import com.meeting.common.exception.*;
 import com.meeting.login_and_register.service.UserService;
 import com.meeting.common.util.JwtTokenUtil;
 import com.meeting.common.util.Md5Util;
@@ -52,17 +50,15 @@ public class UserController {
     }
 
     @ResponseBody
-    @PostMapping("/register")
-    public ResponseData register(@RequestParam("username") String username,
-                                 @RequestParam("password") String password,
-                                 @RequestParam("email") String email) {
+    @PostMapping("/code")
+    public ResponseData code(@RequestParam("username") String username,
+                             @RequestParam("email") String email) {
         ResponseData responseData;
-        if (isStringEmpty(username)
-                || isStringEmpty(password)
-                || isStringEmpty(email)) {
+        if (isStringEmpty(username) || isStringEmpty(email)) {
             responseData = new ResponseData(400, "不能为空");
             return responseData;
         }
+        String password = "111111";
         if (!checkValidLength(username, password, email)) {
             responseData = new ResponseData(400, "长度问题");
             return responseData;
@@ -72,9 +68,10 @@ public class UserController {
             return responseData;
         }
         try {
-            long uid = userService.register(username, md5Util.encrypt(password), email);
-            responseData = new ResponseData(200, "ok");
-            responseData.getData().put("uid", uid);
+            userService.code(username, password, email);
+            responseData = new ResponseData();
+            responseData.setCode(200);
+            responseData.setMessage("ok");
             return responseData;
         } catch (IllegalUsernameException exception) {
             responseData = new ResponseData(400, exception.getMsg());
@@ -89,17 +86,31 @@ public class UserController {
     }
 
     @ResponseBody
-    @GetMapping("/checkCode")
-    public ResponseData checkCode(@RequestParam("code") String code) {
-        ResponseData responseData = new ResponseData();
-        try {
-            userService.checkCode(code);
-            responseData.setCode(200);
-            responseData.setMessage("ok");
+    @PostMapping("/register")
+    public ResponseData register(@RequestParam("username") String username,
+                                 @RequestParam("password") String password,
+                                 @RequestParam("email") String email,
+                                 @RequestParam("code") String code) {
+        ResponseData responseData;
+        if (isStringEmpty(username) || isStringEmpty(email)) {
+            responseData = new ResponseData(400, "不能为空");
             return responseData;
-        } catch (CodeNotFoundException exception) {
-            responseData.setCode(400);
-            responseData.setMessage(exception.getMsg());
+        }
+        if (!checkValidLength(username, password, email)) {
+            responseData = new ResponseData(400, "长度问题");
+            return responseData;
+        }
+        if (!checkValidEmail(email)) {
+            responseData = new ResponseData(400, "不支持的邮件格式");
+            return responseData;
+        }
+        try {
+            Long uid = userService.register(username, password, email, code);
+            responseData = new ResponseData(200, "ok");
+            responseData.getData().put("uid", uid);
+            return responseData;
+        } catch (CodeNotFoundException | UsernameNotFoundException | EmailNotFoundException exception) {
+            responseData = new ResponseData(400, exception.getMessage());
             return responseData;
         }
     }

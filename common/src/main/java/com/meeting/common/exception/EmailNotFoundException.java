@@ -1,10 +1,10 @@
 package com.meeting.common.exception;
 
-public class CodeNotFoundException extends RuntimeException {
+public class EmailNotFoundException extends RuntimeException {
 
     private String msg;
 
-    public CodeNotFoundException(String msg) {
+    public EmailNotFoundException(String msg) {
         this.msg = msg;
     }
 

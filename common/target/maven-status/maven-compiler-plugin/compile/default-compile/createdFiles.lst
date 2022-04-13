@@ -1,12 +1,16 @@
 com\meeting\common\entity\Message.class
 com\meeting\common\entity\ResponseData.class
+com\meeting\common\exception\CodeNotFoundException.class
 com\meeting\common\exception\UserExistException.class
 com\meeting\common\util\JwtTokenUtil.class
+com\meeting\common\exception\UsernameNotFoundException.class
 com\meeting\common\entity\MessageType.class
 com\meeting\common\exception\IllegalUsernameException.class
 com\meeting\common\entity\Service.class
 com\meeting\common\entity\UserRole.class
 com\meeting\common\entity\User.class
 com\meeting\common\util\Md5Util.class
+com\meeting\common\exception\EmailNotFoundException.class
 com\meeting\common\entity\Role.class
 com\meeting\common\util\UUIDUtil.class
+com\meeting\common\util\DigitUtil.class
