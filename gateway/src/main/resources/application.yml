@@ -5,18 +5,5 @@ router:
   services:
     - serviceName: login_and_register
       path: /login_and_register
-      uri:
+      ip:
         - http://127.0.0.1:8000
-      apis:
-        - path: /login
-          authenticate: false
-          persistent: false
-        - path: /register
-          authenticate: false
-          persistent: false
-        - path: /code
-          authenticate: false
-          persistent: false
-        - path: /testAuthority
-          authenticate: true
-          persistent: false

@@ -6,17 +6,15 @@ public class Service {
 
     private String serviceName;
     private String path;
-    private String[] uri;
-    private Api[] apis;
+    private String[] ip;
     private final AtomicCounter counter = new AtomicCounter();
 
     public Service() {}
 
-    public Service(String serviceName, String path, String[] uri, Api[] apis) {
+    public Service(String serviceName, String path, String[] ip) {
         this.serviceName = serviceName;
         this.path = path;
-        this.uri = uri;
-        this.apis = apis;
+        this.ip = ip;
     }
 
     public String getServiceName() {
@@ -35,24 +33,20 @@ public class Service {
         this.path = path;
     }
 
-    public String[] getUri() {
-        return uri;
+    public String[] getIp() {
+        return ip;
     }
 
-    public void setUri(String[] uri) {
-        this.uri = uri;
-    }
-
-    public Api[] getApis() {
-        return apis;
-    }
-
-    public void setApis(Api[] apis) {
-        this.apis = apis;
+    public void setIp(String[] ip) {
+        this.ip = ip;
     }
 
     public AtomicCounter getCounter() {
         return counter;
+    }
+
+    public int size() {
+        return this.ip.length;
     }
 
     @Override
@@ -60,8 +54,7 @@ public class Service {
         return "Service{" +
                 "serviceName='" + serviceName + '\'' +
                 ", path='" + path + '\'' +
-                ", uri=" + Arrays.toString(uri) +
-                ", apis=" + Arrays.toString(apis) +
+                ", ip=" + Arrays.toString(ip) +
                 ", counter=" + counter +
                 '}';
     }

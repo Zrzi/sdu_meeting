@@ -7,6 +7,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="login_and_register" />
+        <module name="file" />
         <module name="common" />
         <module name="log" />
         <module name="service_registry" />
@@ -17,6 +18,7 @@
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="common" options="-parameters" />
+      <module name="file" options="-parameters" />
       <module name="gateway" options="-parameters" />
       <module name="log" options="-parameters" />
       <module name="login_and_register" options="-parameters" />
