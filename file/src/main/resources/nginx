@@ -1,0 +1,11 @@
+server {
+
+    listen: 8001;
+    server_name: localhost;
+
+    location /pic/ {
+        root /www/meeting;
+        autoindex on;
+    }
+
+}

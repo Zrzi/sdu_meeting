@@ -23,6 +23,9 @@ public class UserController {
     @Autowired
     private Md5Util md5Util;
 
+    /**
+     * todo 正则表达式 @mail.sdu.edu.cn @sdu.edu.cn
+     */
     private final static String EMAIL_PATTERN = "@mail.sdu.edu.cn";
 
     @ResponseBody

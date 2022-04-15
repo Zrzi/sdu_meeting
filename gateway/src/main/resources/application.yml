@@ -6,4 +6,10 @@ router:
     - serviceName: login_and_register
       path: /login_and_register
       ip:
-        - http://127.0.0.1:8000
+        # - http://127.0.0.1:8000
+        - http://121.40.95.78:8000
+    - serviceName: file
+      path: /file
+      ip:
+        # - http://127.0.0.1:8001
+        - http://121.40.95.78:8001

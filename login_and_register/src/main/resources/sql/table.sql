@@ -3,9 +3,9 @@ CREATE TABLE `user`(
     `username` VARCHAR(32) UNIQUE NOT NULL,
     `email` VARCHAR(64) UNIQUE NOT NULL,
     `password` VARCHAR(32) NOT NULL,
-    `profile` VARCHAR(32),
     `code` VARCHAR(256),
     `status` INTEGER,
+    `profile` INTEGER,
     PRIMARY KEY (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -47,3 +47,13 @@ ALTER TABLE `user` MODIFY COLUMN `email` VARCHAR(64) UNIQUE NOT NULL;
 ALTER TABLE `user` ADD COLUMN `code` VARCHAR(256);
 
 ALTER TABLE `user` ADD COLUMN `status` INTEGER;
+
+ALTER TABLE `user` MODIFY COLUMN `profile` VARCHAR(128);
+
+UPDATE `user`
+SET `profile` = NULL;
+
+ALTER TABLE `user` MODIFY COLUMN `profile` INTEGER;
+
+UPDATE `user`
+SET `profile` = 0;

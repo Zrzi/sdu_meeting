@@ -10,15 +10,18 @@ spring:
   mvc:
     # 出现异常时，直接抛出异常
     throw-exception-if-no-handler-found: true
-  web:
-    resources:
-      # 不要为工程中的资源文件建立映射
-      add-mappings: false
+  resources:
+    # 不要为工程中的资源文件建立映射
+    add-mappings: false
 
 mybatis:
   mapper-locations: classpath:mybatis-mapper/*.xml
   type-aliases-package: com.meeting.entity
 
 file:
+  # 本地测试
+  # path: "D:/www/meeting"
   path: "/www/meeting"
-  location: "http://127.0.0.1:8080"
+
+picture:
+  pattern: .jpg

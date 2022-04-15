@@ -4,7 +4,6 @@ import com.meeting.common.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -19,6 +18,17 @@ public class JwtTokenUtil {
     private static final String CLAIM_KEY_ROLES = "roles";
     private static final String SECRET = "secret";
     private static final int EXPIRATION = 604800;
+
+    public Long getUserIdFromToken(String token) {
+        Long uid;
+        try {
+            final Claims claims = getClaimsFromToken(token);
+            uid = (Long) claims.get(CLAIM_KEY_ID);
+        } catch (Exception e) {
+            uid = null;
+        }
+        return uid;
+    }
 
     public String getUsernameFromToken(String token) {
         String username;
@@ -121,7 +131,17 @@ public class JwtTokenUtil {
     }
 
     public Boolean validateToken(String token) {
-        return !isTokenExpired(token);
+        Claims claims = null;
+        try {
+            claims = Jwts
+                    .parser()
+                    .setSigningKey(SECRET)
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (Exception ignored) {
+
+        }
+        return claims != null && !isTokenExpired(token);
     }
 
 }

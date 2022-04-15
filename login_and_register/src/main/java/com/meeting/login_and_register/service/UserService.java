@@ -11,6 +11,7 @@ import com.meeting.login_and_register.mapper.RoleMapper;
 import com.meeting.login_and_register.mapper.UserMapper;
 import com.meeting.login_and_register.mapper.UserRoleMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,9 +34,6 @@ public class UserService {
 
     @Autowired
     private MailService mailService;
-
-    @Autowired
-    private UUIDUtil uuidUtil;
 
     @Autowired
     private DigitUtil digitUtil;
@@ -102,7 +100,6 @@ public class UserService {
             user.setUsername(username);
             user.setEmail(email);
             user.setPassword(md5Util.encrypt(password));
-            user.setProfile("default.png");
             user.setCode(code);
             userMapper.insertUser(user);
             userRoleMapper.insertNormalUser(user.getId());

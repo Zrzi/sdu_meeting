@@ -12,6 +12,8 @@ com\meeting\common\entity\User.class
 com\meeting\common\util\Md5Util.class
 com\meeting\common\exception\EmailNotFoundException.class
 com\meeting\common\entity\Role.class
+com\meeting\common\exception\FileFormatException.class
 com\meeting\common\util\UUIDUtil.class
 com\meeting\common\exception\PathNotFoundException.class
+com\meeting\common\exception\UnAuthorizedException.class
 com\meeting\common\util\DigitUtil.class

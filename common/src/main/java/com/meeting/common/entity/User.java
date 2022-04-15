@@ -8,7 +8,6 @@ public class User {
     private String username;
     private String email;
     private String password;
-    private String profile;
     private String code;
     private List<Role> authorities;
     /**
@@ -16,6 +15,11 @@ public class User {
      * status=1，表示用户已经注册，并且已经验证了
      */
     private int status;
+    /**
+     * status=0，表示用户使用默认头像
+     * status=1，表示用户修改过默认头像
+     */
+    private int profile;
 
     public User() {}
 
@@ -51,11 +55,11 @@ public class User {
         this.password = password;
     }
 
-    public String getProfile() {
+    public int getProfile() {
         return profile;
     }
 
-    public void setProfile(String profile) {
+    public void setProfile(int profile) {
         this.profile = profile;
     }
 

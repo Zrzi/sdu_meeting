@@ -14,12 +14,12 @@ public class UserService {
     private UserMapper userMapper;
 
     @Transactional(rollbackFor = RuntimeException.class)
-    public boolean updateUserProfile(Long id, String profile) {
+    public boolean updateUserProfile(Long id) {
         User user = userMapper.findUserByUid(id);
         if (user == null) {
             throw new UserExistException("用户不存在");
         }
-        user.setProfile(profile);
+        user.setProfile(1);
         return userMapper.updateUserProfile(user) != 0;
     }
 

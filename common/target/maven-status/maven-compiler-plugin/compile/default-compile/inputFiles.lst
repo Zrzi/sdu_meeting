@@ -12,6 +12,7 @@ D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\exception\Ille
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\util\Md5Util.java
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\entity\Service.java
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\exception\EmailNotFoundException.java
+D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\exception\FileFormatException.java
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\entity\User.java
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\entity\ResponseData.java
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\exception\CodeNotFoundException.java

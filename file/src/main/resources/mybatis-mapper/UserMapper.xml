@@ -22,7 +22,7 @@
 
     <update id="updateUserProfile" parameterType="com.meeting.common.entity.User">
         UPDATE `user`
-        SET profile` = #{user.profile}
+        SET `profile` = #{user.profile}
         WHERE `user_id` = #{user.id}
     </update>
 
