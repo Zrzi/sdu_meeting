@@ -1,6 +1,5 @@
 package com.meeting.gateway.filter;
 
-import com.alibaba.fastjson.JSON;
 import com.meeting.common.entity.ResponseData;
 import com.meeting.gateway.entity.Router;
 import com.meeting.gateway.entity.Service;
@@ -8,10 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.*;
@@ -20,11 +20,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
@@ -32,7 +29,7 @@ import java.util.Objects;
 /**
  * 路由转发
  */
-@Order(1)
+@Order(3)
 @Component
 @WebFilter(filterName = "RoutingFilter", urlPatterns = {"/*"})
 public class RoutingFilter implements Filter {
@@ -48,13 +45,13 @@ public class RoutingFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
 
-        ResponseData responseData;
+        ResponseData responseData = null;
 
         String uri = request.getRequestURI();
         Service service = getService(router.getServices(), uri);
         if (service == null) {
             responseData = new ResponseData(404, "不存在的服务");
-            response.setStatus(HttpStatus.NOT_FOUND.value());
+            response.setStatus(404);
         } else {
             String url = buildUrl(request, getIp(service), service.getPath());
             try {
@@ -62,11 +59,8 @@ public class RoutingFilter implements Filter {
                     RequestEntity<byte[]> requestEntity = buildRequestEntity(request, url);
                     byte[] bytes = restTemplate.exchange(requestEntity, byte[].class).getBody();
                     if (bytes != null) {
-                        response.setContentType("image/" + url.substring(url.lastIndexOf('.') + 1));
-                        OutputStream out = response.getOutputStream();
-                        out.write(bytes);
-                        out.flush();
-                        out.close();
+                        request.setAttribute("bytes", bytes);
+                        response.setContentType("image/jpeg");
                         return;
                     } else {
                         responseData = new ResponseData(404, "文件不存在");
@@ -76,14 +70,17 @@ public class RoutingFilter implements Filter {
                     responseData = restTemplate.exchange(requestEntity, ResponseData.class).getBody();
                 }
             } catch (URISyntaxException exception) {
-                responseData = new ResponseData(500, "服务器故障");
+                responseData = new ResponseData(500, "服务器故障，uri创建失败");
+                response.setStatus(500);
+            } catch (ResourceAccessException exception) {
+                responseData = new ResponseData(500, "响应超时");
+                response.setStatus(500);
+            } catch (HttpClientErrorException exception) {
+                responseData = new ResponseData(exception.getRawStatusCode(), exception.getMessage());
+                response.setStatus(exception.getRawStatusCode());
             }
         }
-        response.setContentType("application/json");
-        PrintWriter writer = response.getWriter();
-        writer.write(JSON.toJSONString(responseData));
-        writer.flush();
-        writer.close();
+        request.setAttribute("response", responseData);
     }
 
     /**

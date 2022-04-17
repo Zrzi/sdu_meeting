@@ -13,8 +13,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.*;
 
 @Configuration
@@ -34,7 +37,7 @@ public class UpdateInfo {
             new SynchronousQueue<>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
 
     @Scheduled(fixedDelay = 45000)
-    private void updateInfo() {
+    private void updateInfo() throws URISyntaxException {
 
         String message = providers.getAllCopy();
 
@@ -50,17 +53,18 @@ public class UpdateInfo {
                 );
             }
         }
+
     }
 
     class Task implements Runnable {
 
         private final int id;
-        private final String url;
+        private final URI uri;
         private final String message;
 
-        public Task(int id, String ip, int port, String message) {
+        public Task(int id, String ip, int port, String message) throws URISyntaxException {
             this.id = id;
-            this.url = "http://" + ip + "/" + port + "/updateInfo";
+            this.uri = new URI("http://" + ip + "/" + port + "/updateInfo");
             this.message = message;
         }
 
@@ -71,8 +75,12 @@ public class UpdateInfo {
             HttpEntity<MultiValueMap<String, Object>> httpEntity
                     = new HttpEntity<>(params);
             ResponseEntity<ResponseData> response
-                    = restTemplate.postForEntity(url, httpEntity, ResponseData.class);
-            if (response.getStatusCode() != HttpStatus.OK) {
+                    = restTemplate.postForEntity(uri, httpEntity, ResponseData.class);
+            try {
+                if (response.getStatusCode() != HttpStatus.OK) {
+                    consumers.removeService(id);
+                }
+            } catch (ResourceAccessException exception) {
                 consumers.removeService(id);
             }
         }

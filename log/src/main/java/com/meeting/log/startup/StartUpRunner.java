@@ -26,7 +26,7 @@ public class StartUpRunner implements CommandLineRunner {
     @Value("${registry.url}")
     private String url;
 
-    @Value("${registry.log}")
+    @Value("${registry.serviceName}")
     private String serviceName;
 
     @Autowired
@@ -36,7 +36,7 @@ public class StartUpRunner implements CommandLineRunner {
     public void run(String... args) throws Exception {
         String hostIp = getHostIp();
         MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("service_name", serviceName);
+        params.add("serviceName", serviceName);
         params.add("ip", hostIp);
         params.add("port", localPort);
         HttpEntity<MultiValueMap<String, Object>> httpEntity
@@ -49,6 +49,7 @@ public class StartUpRunner implements CommandLineRunner {
         } while (responseEntity.getStatusCode() != HttpStatus.OK
                 || (responseData = responseEntity.getBody()) == null
                 || responseData.getCode() != 200);
+        System.out.println("注册成功");
     }
 
     private String getHostIp() {

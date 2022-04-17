@@ -58,16 +58,16 @@ public class UserController {
                              @RequestParam("email") String email) {
         ResponseData responseData;
         if (isStringEmpty(username) || isStringEmpty(email)) {
-            responseData = new ResponseData(400, "不能为空");
+            responseData = new ResponseData(4001, "输入不能为空");
             return responseData;
         }
         String password = "111111";
         if (!checkValidLength(username, password, email)) {
-            responseData = new ResponseData(400, "长度问题");
+            responseData = new ResponseData(4002, "长度不符合要求");
             return responseData;
         }
         if (!checkValidEmail(email)) {
-            responseData = new ResponseData(400, "不支持的邮件格式");
+            responseData = new ResponseData(4003, "不支持的邮件格式");
             return responseData;
         }
         try {
@@ -77,13 +77,13 @@ public class UserController {
             responseData.setMessage("ok");
             return responseData;
         } catch (IllegalUsernameException exception) {
-            responseData = new ResponseData(400, exception.getMsg());
+            responseData = new ResponseData(4004, exception.getMsg());
             return responseData;
         } catch (UserExistException exception) {
-            responseData = new ResponseData(400, exception.getMsg());
+            responseData = new ResponseData(4004, exception.getMsg());
             return responseData;
-        } catch (RuntimeException exception) {
-            responseData = new ResponseData(400, exception.getMessage());
+        } catch (BaseException exception) {
+            responseData = new ResponseData(500, exception.getMsg());
             return responseData;
         }
     }
@@ -95,16 +95,16 @@ public class UserController {
                                  @RequestParam("email") String email,
                                  @RequestParam("code") String code) {
         ResponseData responseData;
-        if (isStringEmpty(username) || isStringEmpty(email)) {
-            responseData = new ResponseData(400, "不能为空");
+        if (isStringEmpty(username) || isStringEmpty(email) || isStringEmpty(password)) {
+            responseData = new ResponseData(4001, "输入不能为空");
             return responseData;
         }
         if (!checkValidLength(username, password, email)) {
-            responseData = new ResponseData(400, "长度问题");
+            responseData = new ResponseData(4002, "长度不符合要求");
             return responseData;
         }
         if (!checkValidEmail(email)) {
-            responseData = new ResponseData(400, "不支持的邮件格式");
+            responseData = new ResponseData(4003, "不支持的邮件格式");
             return responseData;
         }
         try {
@@ -113,13 +113,13 @@ public class UserController {
             responseData.getData().put("uid", uid);
             return responseData;
         } catch (CodeNotFoundException exception) {
-            responseData = new ResponseData(400, exception.getMsg());
+            responseData = new ResponseData(4004, exception.getMsg());
             return responseData;
         } catch (UsernameNotFoundException exception) {
-            responseData = new ResponseData(400, exception.getMsg());
+            responseData = new ResponseData(4004, exception.getMsg());
             return responseData;
         } catch (EmailNotFoundException exception) {
-            responseData = new ResponseData(400, exception.getMsg());
+            responseData = new ResponseData(4004, exception.getMsg());
             return responseData;
         }
     }

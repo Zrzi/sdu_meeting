@@ -13,13 +13,15 @@ public class UserService {
     @Autowired
     private UserMapper userMapper;
 
-    @Transactional(rollbackFor = RuntimeException.class)
-    public boolean updateUserProfile(Long id) {
+    public User findUserByUid(Long id) {
         User user = userMapper.findUserByUid(id);
         if (user == null) {
             throw new UserExistException("用户不存在");
         }
-        user.setProfile(1);
+        return user;
+    }
+
+    public boolean updateUserProfile(User user) {
         return userMapper.updateUserProfile(user) != 0;
     }
 

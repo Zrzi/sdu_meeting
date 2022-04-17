@@ -3,6 +3,7 @@ package com.meeting.file.aop;
 import com.meeting.common.exception.UnAuthorizedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -27,6 +28,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = {MissingServletRequestParameterException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, Object> handleException(MissingServletRequestParameterException exception) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("code", 400);
+        map.put("message", exception.getMessage());
+        return map;
+    }
+
+    /**
+     * 捕获MissingServletRequestParameterException异常，400
+     * @param exception MissingServletRequestParameterException
+     * @return 400响应
+     */
+    @ResponseBody
+    @ExceptionHandler(value = {MissingRequestHeaderException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, Object> handleException(MissingRequestHeaderException exception) {
         Map<String, Object> map = new HashMap<>();
         map.put("code", 400);
         map.put("message", exception.getMessage());
@@ -64,7 +80,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 捕获FileNotFoundException异常，405
+     * 捕获FileNotFoundException异常，404
      * @param exception FileNotFoundException
      * @return 404响应
      */
@@ -100,7 +116,6 @@ public class GlobalExceptionHandler {
      */
     @ResponseBody
     @ExceptionHandler(value = {MaxUploadSizeExceededException.class})
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, Object> handleException(MaxUploadSizeExceededException exception) {
         Map<String, Object> map = new HashMap<>();
         map.put("code", 500);

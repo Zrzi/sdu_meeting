@@ -6,6 +6,7 @@ D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\exception\User
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\exception\PathNotFoundException.java
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\entity\MessageType.java
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\util\DigitUtil.java
+D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\exception\UnAuthorizedException.java
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\exception\UserExistException.java
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\entity\UserRole.java
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\exception\IllegalUsernameException.java
@@ -15,4 +16,5 @@ D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\exception\Emai
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\exception\FileFormatException.java
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\entity\User.java
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\entity\ResponseData.java
+D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\exception\BaseException.java
 D:\IDEA\sdumeeting\parent\common\src\main\java\com\meeting\common\exception\CodeNotFoundException.java

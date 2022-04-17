@@ -113,10 +113,10 @@ public class Providers {
                 port = record.getPort();
                 if (service.getServiceId().equals(key) ||
                         (service.getIp().equals(ip) && service.getPort().equals(port))) {
-                    return false;
+                    return true;
                 }
             }
-            return true;
+            return false;
         } finally {
             lock.readLock().unlock();
         }

@@ -123,7 +123,7 @@ public class UserService {
             throw new UsernameNotFoundException("不存在的用户名");
         }
         if (!Objects.equals(email, user.getEmail())) {
-            throw new EmailNotFoundException("不存在的邮箱");
+            throw new BaseException("不存在的邮箱");
         }
         user.setPassword(md5Util.encrypt(password));
         user.setStatus(1);

@@ -9,6 +9,7 @@ com\meeting\common\exception\IllegalUsernameException.class
 com\meeting\common\entity\Service.class
 com\meeting\common\entity\UserRole.class
 com\meeting\common\entity\User.class
+com\meeting\common\exception\BaseException.class
 com\meeting\common\util\Md5Util.class
 com\meeting\common\exception\EmailNotFoundException.class
 com\meeting\common\entity\Role.class

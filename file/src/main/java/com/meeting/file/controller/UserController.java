@@ -1,6 +1,7 @@
 package com.meeting.file.controller;
 
 import com.meeting.common.entity.ResponseData;
+import com.meeting.common.entity.User;
 import com.meeting.common.exception.FileFormatException;
 import com.meeting.common.exception.UnAuthorizedException;
 import com.meeting.common.exception.UserExistException;
@@ -14,6 +15,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @CrossOrigin(origins = {"*"})
@@ -40,9 +43,14 @@ public class UserController {
         }
         try {
             pictureUtil.handlePicture("user", img, uid);
-            if (userService.updateUserProfile(uid)) {
+            User user = userService.findUserByUid(uid);
+            user.setProfile(1);
+            if (userService.updateUserProfile(user)) {
                 // 修改成功
                 responseData = new ResponseData(200, "ok");
+                Map<String, Object> info = new HashMap<String, Object>();
+                info.put("profile", false);
+                responseData.getData().put("token", jwtTokenUtil.refreshToken(token, info));
                 return responseData;
             } else {
                 // 修改记录为0
@@ -63,7 +71,7 @@ public class UserController {
             return responseData;
         }
     }
-    
+
     @ResponseBody
     @GetMapping("/pic/user/{filename}")
     public byte[] getUserProfile(@PathVariable("filename") String filename)

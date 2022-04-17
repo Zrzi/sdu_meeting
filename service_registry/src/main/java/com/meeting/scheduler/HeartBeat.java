@@ -8,8 +8,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.*;
 
 @Configuration
@@ -26,7 +30,7 @@ public class HeartBeat {
             new SynchronousQueue<>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
 
     @Scheduled(fixedDelay = 30000)
-    private void heartBeat() {
+    private void heartBeat() throws URISyntaxException {
 
         // 拷贝serviceMap中的keys
         int[] keys = providers.keys();
@@ -46,18 +50,26 @@ public class HeartBeat {
     class Task implements Runnable {
 
         private final int id;
-        private final String url;
+        private final URI uri;
 
-        public Task(int id, String ip, int port) {
+        public Task(int id, String ip, int port) throws URISyntaxException {
             this.id = id;
-            this.url = "http://" + ip + "/" + port + "/heartBeat";
+            // 本地测试使用
+            this.uri = new URI("http://" + "127.0.0.1" + ":" + port + "/heartBeat");
+            // this.uri = new URI("http://" + ip + "/" + port + "/heartBeat");
         }
 
         @Override
         public void run() {
-            ResponseEntity<ResponseData> exchange =
-                    restTemplate.exchange(this.url, HttpMethod.GET, null, ResponseData.class);
-            if (exchange.getStatusCode() != HttpStatus.OK) {
+            RequestEntity<String> requestEntity
+                    = new RequestEntity<>(null, null, HttpMethod.GET, this.uri);
+            try {
+                ResponseEntity<ResponseData> exchange
+                        = restTemplate.exchange(requestEntity, ResponseData.class);
+                if (exchange.getStatusCode() != HttpStatus.OK) {
+                    providers.removeService(id);
+                }
+            } catch (ResourceAccessException | HttpClientErrorException exception) {
                 providers.removeService(id);
             }
         }

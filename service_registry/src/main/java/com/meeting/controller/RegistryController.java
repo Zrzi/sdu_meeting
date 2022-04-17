@@ -25,7 +25,7 @@ public class RegistryController {
 
     @ResponseBody
     @PostMapping("/registerProvider")
-    public ResponseData registerProvider(@RequestParam("service_name") String serviceName,
+    public ResponseData registerProvider(@RequestParam("serviceName") String serviceName,
                                          @RequestParam("ip") String ip,
                                          @RequestParam("port") Integer port) {
         ResponseData responseData;

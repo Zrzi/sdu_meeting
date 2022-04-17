@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
+
 @Configuration
 public class Config {
 
@@ -16,6 +18,8 @@ public class Config {
 
     @Bean
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
+        builder.setConnectTimeout(Duration.ofMillis(8 * 1000));
+        builder.setReadTimeout(Duration.ofMillis(8 * 1000));
         return builder.build();
     }
 
