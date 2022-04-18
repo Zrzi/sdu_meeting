@@ -1,5 +1,6 @@
 package com.meeting.file.aop;
 
+import com.meeting.common.exception.FileFormatException;
 import com.meeting.common.exception.UnAuthorizedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.io.FileNotFoundException;
@@ -40,12 +42,42 @@ public class GlobalExceptionHandler {
      * @return 400响应
      */
     @ResponseBody
+    @ExceptionHandler(value = {MissingServletRequestPartException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, Object> handleException(MissingServletRequestPartException exception) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("code", 400);
+        map.put("message", exception.getMessage());
+        return map;
+    }
+
+    /**
+     * 捕获MissingServletRequestParameterException异常，400
+     * @param exception MissingServletRequestParameterException
+     * @return 400响应
+     */
+    @ResponseBody
     @ExceptionHandler(value = {MissingRequestHeaderException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, Object> handleException(MissingRequestHeaderException exception) {
         Map<String, Object> map = new HashMap<>();
         map.put("code", 400);
         map.put("message", exception.getMessage());
+        return map;
+    }
+
+    /**
+     * 捕获FileFormatException异常，400，用户请求时会发生的错误
+     * @param exception FileFormatException
+     * @return 400响应
+     */
+    @ResponseBody
+    @ExceptionHandler(value = {FileFormatException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, Object> handleException(FileFormatException exception) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("code", 400);
+        map.put("message", exception.getMsg());
         return map;
     }
 

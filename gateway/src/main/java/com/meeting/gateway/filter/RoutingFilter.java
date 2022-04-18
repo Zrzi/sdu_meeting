@@ -1,13 +1,12 @@
 package com.meeting.gateway.filter;
 
+import com.alibaba.fastjson.JSON;
 import com.meeting.common.entity.ResponseData;
 import com.meeting.gateway.entity.Router;
 import com.meeting.gateway.entity.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.RequestEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.HttpClientErrorException;
@@ -18,6 +17,7 @@ import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -55,19 +55,17 @@ public class RoutingFilter implements Filter {
         } else {
             String url = buildUrl(request, getIp(service), service.getPath());
             try {
-                if (Objects.equals(service.getServiceName(), "file") && Objects.equals(request.getMethod(), "GET")) {
-                    RequestEntity<byte[]> requestEntity = buildRequestEntity(request, url);
-                    byte[] bytes = restTemplate.exchange(requestEntity, byte[].class).getBody();
-                    if (bytes != null) {
-                        request.setAttribute("bytes", bytes);
-                        response.setContentType("image/jpeg");
-                        return;
-                    } else {
-                        responseData = new ResponseData(404, "文件不存在");
-                    }
+                RequestEntity<byte[]> requestEntity = buildRequestEntity(request, url);
+                ResponseEntity<byte[]> exchange = restTemplate.exchange(requestEntity, byte[].class);
+                byte[] bytes = exchange.getBody();
+                if (bytes != null) {
+                    request.setAttribute("bytes", bytes);
+                    response.setContentType(exchange.getHeaders().getContentType() != null
+                            ? exchange.getHeaders().getContentType().toString()
+                            : MediaType.APPLICATION_JSON_VALUE);
+                    return;
                 } else {
-                    RequestEntity<byte[]> requestEntity = buildRequestEntity(request, url);
-                    responseData = restTemplate.exchange(requestEntity, ResponseData.class).getBody();
+                    responseData = new ResponseData(404, "资源不存在");
                 }
             } catch (URISyntaxException exception) {
                 responseData = new ResponseData(500, "服务器故障，uri创建失败");
@@ -80,7 +78,11 @@ public class RoutingFilter implements Filter {
                 response.setStatus(exception.getRawStatusCode());
             }
         }
-        request.setAttribute("response", responseData);
+
+        byte[] bytes = JSON.toJSONBytes(responseData);
+        request.setAttribute("bytes", bytes);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
     }
 
     /**
@@ -168,6 +170,33 @@ public class RoutingFilter implements Filter {
             throws IOException {
         InputStream input = request.getInputStream();
         return StreamUtils.copyToByteArray(input);
+    }
+
+    private byte[] read(InputStream input) {
+        ByteArrayOutputStream output = null;
+        try {
+            output = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int read = -1;
+            while ((read = input.read(buffer)) != -1) {
+                output.write(buffer, 0, read);
+            }
+            return output.toByteArray();
+        } catch (IOException exception) {
+            System.out.println(exception.getMessage());
+            return null;
+        } finally {
+            try {
+                if (input != null) {
+                    input.close();
+                }
+                if (output != null) {
+                    output.close();
+                }
+            } catch (IOException exception) {
+                System.out.println(exception.getMessage());
+            }
+        }
     }
 
 }

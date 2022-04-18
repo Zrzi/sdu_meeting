@@ -21,7 +21,7 @@ public class TestJwtUtil {
         user.setUsername("user");
         user.setEmail("201900301041@mail.sdu.edu.cn");
         user.setId(1L);
-        user.setProfile(0);
+        user.setProfile("");
         String token = jwtTokenUtil.generateToken(user);
         System.out.println(token);
     }

@@ -1,5 +1,6 @@
 package com.meeting.gateway.filter;
 
+import com.alibaba.fastjson.JSON;
 import com.meeting.common.entity.ResponseData;
 import com.meeting.common.util.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +39,10 @@ public class AuthorizationFilter implements Filter {
             if (authorization == null || !jwtTokenUtil.validateToken(authorization)) {
                 // 消息
                 ResponseData responseData = new ResponseData(401, "未登录");
+                byte[] bytes = JSON.toJSONBytes(responseData);
+                request.setAttribute("bytes", bytes);
+                response.setContentType("application/json");
                 response.setStatus(401);
-                request.setAttribute("response", responseData);
                 return;
             }
         }

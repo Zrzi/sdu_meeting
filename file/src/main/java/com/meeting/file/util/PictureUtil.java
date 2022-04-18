@@ -1,5 +1,6 @@
 package com.meeting.file.util;
 
+import com.meeting.common.exception.BaseException;
 import com.meeting.common.exception.FileFormatException;
 import com.meeting.common.util.UUIDUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +16,8 @@ public class PictureUtil {
     @Value("${file.path}")
     public String path;
 
-    @Value("${picture.pattern}")
-    private String filePattern;
+    @Value("${picture.reg}")
+    private String reg;
 
     /**
      * 文件后缀名，.jpg
@@ -29,18 +30,22 @@ public class PictureUtil {
      * 处理图片
      * @param type 类型
      * @param file 图片
+     * @patam fileType 图片格式
      */
-    public void handlePicture(String type, MultipartFile file, long uid)
+    public void handlePicture(String type, MultipartFile file, long uid, String fileType)
             throws IOException{
         String originalName = file.getOriginalFilename();
         if (originalName == null) {
-            throw new IllegalStateException("文件名不能为空");
+            throw new BaseException("文件名不能为空");
         }
-        if (!originalName.endsWith(filePattern)) {
-            throw new FileFormatException("不支持的文件格式");
+        if (!"jpeg".equals(fileType) && !"png".equals(fileType)) {
+            throw new FileFormatException("不支持的文件格式，fileType参数");
+        }
+        if (!originalName.matches(reg)) {
+            throw new FileFormatException("不支持的文件格式，img参数");
         }
         // 新的文件名
-        String fileName = "" + uid + filePattern;
+        String fileName = "" + uid + "." + fileType;
         // 文件目的地址
         File dest = new File(path + '/' + type + '/' + fileName);
         if(!dest.getParentFile().exists()){

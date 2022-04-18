@@ -26,4 +26,4 @@ file:
   path: "/www/meeting"
 
 picture:
-  pattern: .jpg
+  reg: .+(.jpeg|.jpg|.png)$

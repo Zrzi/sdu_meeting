@@ -115,7 +115,7 @@ public class JwtTokenUtil {
         claims.put(CLAIM_KEY_ID, user.getId());
         claims.put(CLAIM_KEY_EMAIL, user.getEmail());
         claims.put(CLAIM_KEY_ROLES, user.getAuthorities());
-        claims.put(CLAIM_KEY_PROFILE, user.getProfile() == 0);
+        claims.put(CLAIM_KEY_PROFILE, user.getProfile());
         return generateToken(claims);
     }
 

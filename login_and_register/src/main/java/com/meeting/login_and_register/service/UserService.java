@@ -100,6 +100,7 @@ public class UserService {
             user.setUsername(username);
             user.setEmail(email);
             user.setPassword(md5Util.encrypt(password));
+            user.setProfile("");
             user.setCode(code);
             userMapper.insertUser(user);
             userRoleMapper.insertNormalUser(user.getId());

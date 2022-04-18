@@ -3,6 +3,7 @@ package com.meeting.login_and_register.controller;
 import com.meeting.common.entity.ResponseData;
 import com.meeting.common.util.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,7 +15,7 @@ public class TestController {
     private JwtTokenUtil jwtTokenUtil;
 
     @ResponseBody
-    @GetMapping("/testAuthority")
+    @GetMapping(value = "/testAuthority", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseData testAuthority(@RequestHeader(value = "Authorization", required = false) String authorization,
                                       @RequestParam("value1") Integer value1,
                                       @RequestParam("value2") Integer value2) {

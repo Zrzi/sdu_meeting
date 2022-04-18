@@ -16,12 +16,23 @@ public class User {
      */
     private int status;
     /**
-     * status=0，表示用户使用默认头像
-     * status=1，表示用户修改过默认头像
+     * profile为空字符串，表示用户使用默认头像
+     * profile表示文件格式，支持png、jpg
      */
-    private int profile;
+    private String profile;
 
     public User() {}
+
+    public User(Long id, String username, String email, String password, String code, List<Role> authorities, int status, String profile) {
+        this.id = id;
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.code = code;
+        this.authorities = authorities;
+        this.status = status;
+        this.profile = profile;
+    }
 
     public Long getId() {
         return id;
@@ -55,28 +66,12 @@ public class User {
         this.password = password;
     }
 
-    public int getProfile() {
-        return profile;
-    }
-
-    public void setProfile(int profile) {
-        this.profile = profile;
-    }
-
     public String getCode() {
         return code;
     }
 
     public void setCode(String code) {
         this.code = code;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
     }
 
     public List<Role> getAuthorities() {
@@ -87,6 +82,22 @@ public class User {
         this.authorities = authorities;
     }
 
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public String getProfile() {
+        return profile;
+    }
+
+    public void setProfile(String profile) {
+        this.profile = profile;
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -94,11 +105,10 @@ public class User {
                 ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
-                ", profile='" + profile + '\'' +
                 ", code='" + code + '\'' +
                 ", authorities=" + authorities +
                 ", status=" + status +
+                ", profile='" + profile + '\'' +
                 '}';
     }
-
 }

@@ -5,7 +5,7 @@ CREATE TABLE `user`(
     `password` VARCHAR(32) NOT NULL,
     `code` VARCHAR(256),
     `status` INTEGER,
-    `profile` INTEGER,
+    `profile` VARCHAR(32),
     PRIMARY KEY (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -57,3 +57,11 @@ ALTER TABLE `user` MODIFY COLUMN `profile` INTEGER;
 
 UPDATE `user`
 SET `profile` = 0;
+
+UPDATE `user`
+SET `profile` = NULL;
+
+ALTER TABLE `user` MODIFY COLUMN `profile` VARCHAR(32);
+
+UPDATE `user`
+SET `profile` = '';

@@ -7,6 +7,7 @@ import com.meeting.login_and_register.service.UserService;
 import com.meeting.common.util.JwtTokenUtil;
 import com.meeting.common.util.Md5Util;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +30,7 @@ public class UserController {
     private final static String EMAIL_PATTERN = "@mail.sdu.edu.cn";
 
     @ResponseBody
-    @PostMapping("/login")
+    @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseData login(@RequestParam("text") String text,
                               @RequestParam("password") String password) {
         ResponseData responseData;
@@ -53,7 +54,7 @@ public class UserController {
     }
 
     @ResponseBody
-    @PostMapping("/code")
+    @PostMapping(value = "/code", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseData code(@RequestParam("username") String username,
                              @RequestParam("email") String email) {
         ResponseData responseData;
@@ -89,7 +90,7 @@ public class UserController {
     }
 
     @ResponseBody
-    @PostMapping("/register")
+    @PostMapping(value = "/register", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseData register(@RequestParam("username") String username,
                                  @RequestParam("password") String password,
                                  @RequestParam("email") String email,
