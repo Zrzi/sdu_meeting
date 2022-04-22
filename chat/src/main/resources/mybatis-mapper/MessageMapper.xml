@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.meeting.chatroom.mapper.MessageMapper">
+
+    <resultMap id="message" type="com.meeting.chatroom.entity.MessageDO">
+
+        <id property="id" column="message_id" />
+        <result property="fromId" column="from_id" />
+        <result property="toId" column="to_id" />
+        <result property="message" column="message" />
+        <result property="date" column="date" />
+        <result property="status" column="status" />
+
+    </resultMap>
+
+    <select id="findMessageById" parameterType="Long" resultMap="message">
+        SELECT `message_id`, `from_id`, `to_id`, `message`, `date`, `status`
+        FROM `message`
+        WHERE `message_id` = #{id}
+    </select>
+
+    <select id="findMessageByFromId" parameterType="Long" resultMap="message">
+        SELECT `message_id`, `from_id`, `to_id`, `message`, `date`, `status`
+        FROM `message`
+        WHERE `from_id` = #{id}
+    </select>
+
+    <select id="findMessageByToId" parameterType="Long" resultMap="message">
+        SELECT `message_id`, `from_id`, `to_id`, `message`, `date`, `status`
+        FROM `message`
+        WHERE `to_id` = #{id}
+    </select>
+
+    <select id="findMessageByToIdAndStatus" resultMap="message">
+        SELECT `message_id`, `from_id`, `to_id`, `message`, `date`, `status`
+        FROM `message`
+        WHERE `to_id` = #{id} and `status` = #{status}
+    </select>
+
+    <select id="findRequestByFromIdAndToId" resultMap="message">
+        SELECT `message_id`, `from_id`, `to_id`, `message`, `date`, `status`
+        FROM `message`
+        WHERE `from_id` = #{fromId} and `to_id` = #{toId} and `status` = 2
+    </select>
+
+    <select id="findRequestByToId" parameterType="Long" resultMap="message">
+        SELECT `message_id`, `from_id`, `to_id`, `message`, `date`, `status`
+        FROM `message`
+        WHERE `to_id` = #{id} and `status` = 2
+    </select>
+
+    <select id="findHistoryMessage" resultMap="message">
+        SELECT `message_id`, `from_id`, `to_id`, `message`, `date`, `status`
+        FROM `message`
+        WHERE `from_id` = #{uid1} AND `to_id` = #{uid2}
+          AND `status` in (0, 1)
+        UNION
+        SELECT `message_id`, `from_id`, `to_id`, `message`, `date`, `status`
+        FROM `message`
+        WHERE `from_id` = #{uid1} AND `to_id` = #{uid2}
+          AND `status` in (0, 1)
+        ORDER BY `message_id` DESC
+        LIMIT #{start}, #{end};
+    </select>
+
+    <insert id="insertMessage" parameterType="com.meeting.chatroom.entity.MessageDO"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="message_id">
+        INSERT INTO `message` (`from_id`, `to_id`, `message`, `date`, `status`)
+        VALUES (#{message.fromId}, #{message.toId}, #{message.message}, #{message.date}, #{message.status})
+    </insert>
+
+    <update id="updateMessage" parameterType="com.meeting.chatroom.entity.MessageDO">
+        UPDATE `message`
+        SET `from_id` = #{message.fromId},
+            `to_id` = #{message.toId},
+            `message` = #{message.message},
+            `date` = #{message.date},
+            `status` = #{message.status}
+        WHERE `message_id` = #{message.id}
+    </update>
+
+</mapper>

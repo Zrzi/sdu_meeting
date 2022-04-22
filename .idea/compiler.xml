@@ -10,6 +10,7 @@
         <module name="file" />
         <module name="common" />
         <module name="log" />
+        <module name="chat" />
         <module name="service_registry" />
         <module name="gateway" />
       </profile>
@@ -17,6 +18,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="chat" options="-parameters" />
       <module name="common" options="-parameters" />
       <module name="file" options="-parameters" />
       <module name="gateway" options="-parameters" />

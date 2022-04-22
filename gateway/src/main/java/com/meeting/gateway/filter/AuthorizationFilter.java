@@ -30,6 +30,7 @@ public class AuthorizationFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) servletResponse;
 
         String uri = request.getRequestURI();
+
         if (!uri.contains("/login_and_register/login")
                 && !uri.contains("/login_and_register/register")
                 && !uri.contains("/login_and_register/code")

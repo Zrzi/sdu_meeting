@@ -1,5 +1,8 @@
 package com.meeting.gateway.entity;
 
+import com.meeting.gateway.balance.LoadBalancer;
+import com.meeting.gateway.balance.impl.DefaultLoadBalancer;
+
 import java.util.Arrays;
 
 public class Service {
@@ -8,6 +11,7 @@ public class Service {
     private String path;
     private String[] ip;
     private final AtomicCounter counter = new AtomicCounter();
+    private final LoadBalancer balancer = new DefaultLoadBalancer();
 
     public Service() {}
 
@@ -47,6 +51,15 @@ public class Service {
 
     public int size() {
         return this.ip.length;
+    }
+
+    public boolean support(String uri) {
+        return uri.contains(this.path);
+    }
+
+    public String getNextIp() {
+        int index = balancer.getNextService(this.ip.length);
+        return this.ip[index];
     }
 
     @Override

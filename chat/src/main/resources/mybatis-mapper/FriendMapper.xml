@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.meeting.chatroom.mapper.FriendMapper">
+
+    <resultMap id="friend" type="com.meeting.chatroom.entity.Friend">
+        <id property="uid" column="user_id" />
+        <id property="friendId" column="friend_id" />
+    </resultMap>
+
+    <select id="findFriendsByUserId" parameterType="Long" resultType="Long">
+        SELECT `friend_id`
+        FROM `friend`
+        WHERE `user_id` = #{id}
+    </select>
+
+    <insert id="insertFriend" parameterType="com.meeting.chatroom.entity.Friend">
+        INSERT INTO `friend` (`user_id`, `friend_id`)
+        VALUES (#{friend.uid}, #{friend.friendId})
+    </insert>
+
+    <delete id="removeFriend" parameterType="com.meeting.chatroom.entity.Friend">
+        DELETE FROM `friend`
+        WHERE `user_id` = #{friend.uid}
+          AND `friend_id` =#{friend.friendId}
+    </delete>
+
+</mapper>
