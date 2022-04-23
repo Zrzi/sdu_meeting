@@ -51,6 +51,7 @@ public class MessageDO {
      */
     public MessageDO(MessageVO messageVO, long fromId) {
         this.id = messageVO.getId() == null ? 0 : messageVO.getId();
+        this.fromId = fromId;
         this.toId = messageVO.getToId();
         this.message = messageVO.getMessage();
         // 当前时间

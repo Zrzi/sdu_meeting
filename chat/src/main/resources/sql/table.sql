@@ -17,12 +17,6 @@ CREATE TABLE `friend` (
 SELECT *
 FROM `message`
 WHERE `from_id` = 10 AND `to_id` = 11
-    AND `status` in (0, 1)
-ORDER BY `message_id` DESC;
-
-SELECT *
-FROM `message`
-WHERE `from_id` = 10 AND `to_id` = 11
   AND `status` in (0, 1)
 UNION
 SELECT *
@@ -30,3 +24,18 @@ FROM `message`
 WHERE `from_id` = 11 AND `to_id` = 10
   AND `status` in (0, 1)
 ORDER BY `message_id` DESC;
+
+SELECT `temp`.`message_id`, `temp`.`from_id`, `temp`.`to_id`, `temp`.`message`, `temp`.`date`, `temp`.`status`
+FROM (
+    SELECT *
+    FROM `message`
+    WHERE `from_id` = 10 AND `to_id` = 11
+      AND `status` in (0, 1)
+    UNION
+    SELECT *
+    FROM `message`
+    WHERE `from_id` = 11 AND `to_id` = 10
+      AND `status` in (0, 1)
+) AS `temp`
+ORDER BY `temp`.`message_id` DESC
+LIMIT 3, 10;

@@ -67,15 +67,15 @@ public interface MessageMapper {
 
     /**
      * 添加消息记录
-     * @param message
-     * @return
+     * @param message MessageDO对象
+     * @return 影响记录数
      */
     Integer insertMessage(@Param("message") MessageDO message);
 
     /**
      * 更新消息记录
-     * @param message
-     * @return
+     * @param message MessageDO对象
+     * @return 影响记录数
      */
     Integer updateMessage(@Param("message") MessageDO message);
 

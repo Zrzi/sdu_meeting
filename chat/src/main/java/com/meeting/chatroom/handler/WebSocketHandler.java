@@ -358,7 +358,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
      */
     private void handlePullUnsignedMessage(long uid) {
         ResponseData responseData = chatService.selectUnsignedMessage(uid);
-        this.channel.write(
+        this.channel.writeAndFlush(
                 new TextWebSocketFrame(JSON.toJSONString(responseData))
         );
     }
@@ -372,7 +372,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
      */
     private void handlePullHistoryMessage(long uid1, long uid2, int start, int num) {
         ResponseData responseData = chatService.selectHistoryMessage(uid1, uid2, start, num);
-        this.channel.write(
+        this.channel.writeAndFlush(
                 new TextWebSocketFrame(JSON.toJSONString(responseData))
         );
     }

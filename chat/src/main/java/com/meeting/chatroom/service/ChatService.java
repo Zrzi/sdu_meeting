@@ -28,6 +28,8 @@ public class ChatService {
         } else {
             if (userMapper.findUserById(message.getFromId()) == null
                     || userMapper.findUserById(message.getToId()) == null) {
+                System.out.println(message.getFromId());
+                System.out.println(message.getToId());
                 responseData = ResponseData.USER_ID_NOT_FOUND;
             } else {
                 // 如果在线，默认用户签收消息，否则认为消息没有签收

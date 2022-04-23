@@ -52,17 +52,20 @@
     </select>
 
     <select id="findHistoryMessage" resultMap="message">
-        SELECT `message_id`, `from_id`, `to_id`, `message`, `date`, `status`
-        FROM `message`
-        WHERE `from_id` = #{uid1} AND `to_id` = #{uid2}
-          AND `status` in (0, 1)
-        UNION
-        SELECT `message_id`, `from_id`, `to_id`, `message`, `date`, `status`
-        FROM `message`
-        WHERE `from_id` = #{uid1} AND `to_id` = #{uid2}
-          AND `status` in (0, 1)
-        ORDER BY `message_id` DESC
-        LIMIT #{start}, #{end};
+        SELECT `temp`.`message_id`, `temp`.`from_id`, `temp`.`to_id`, `temp`.`message`, `temp`.`date`, `temp`.`status`
+        FROM (
+            SELECT `message_id`, `from_id`, `to_id`, `message`, `date`, `status`
+            FROM `message`
+            WHERE `from_id` = #{uid1} AND `to_id` = #{uid2}
+              AND `status` in (0, 1)
+            UNION
+            SELECT `message_id`, `from_id`, `to_id`, `message`, `date`, `status`
+            FROM `message`
+            WHERE `from_id` = #{uid2} AND `to_id` = #{uid1}
+              AND `status` in (0, 1)
+        ) AS `temp`
+        ORDER BY `temp`.`message_id` DESC
+        LIMIT #{start}, #{num};
     </select>
 
     <insert id="insertMessage" parameterType="com.meeting.chatroom.entity.MessageDO"
