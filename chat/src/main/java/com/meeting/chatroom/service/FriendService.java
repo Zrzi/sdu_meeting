@@ -1,8 +1,6 @@
 package com.meeting.chatroom.service;
 
-import com.meeting.chatroom.entity.Friend;
-import com.meeting.chatroom.entity.MessageDO;
-import com.meeting.chatroom.entity.ResponseData;
+import com.meeting.chatroom.entity.*;
 import com.meeting.chatroom.mapper.FriendMapper;
 import com.meeting.chatroom.mapper.MessageMapper;
 import com.meeting.chatroom.mapper.UserMapper;
@@ -11,8 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +27,9 @@ public class FriendService {
     private MessageMapper messageMapper;
 
     @Transactional(rollbackFor = RuntimeException.class)
-    public ResponseData findFriends(Long userId) {
+    public ResponseDataContainer findFriends(Long userId) {
+        ResponseDataContainer container = new ResponseDataContainer();
+        ResponseData toSender = null;
         List<Map<String, Object>> collect =
                 friendMapper
                         .findFriendsByUserId(userId)
@@ -46,17 +44,28 @@ public class FriendService {
                             return map;
                         })
                         .collect(Collectors.toList());
-        ResponseData responseData = ResponseData.ok();
-        responseData.getData().put("list", collect);
-        return responseData;
+        toSender = ResponseData.ok(ResponseType.FRIEND.getType());
+        toSender.getData().put("list", collect);
+        container.setToSender(toSender);
+        return container;
     }
 
-    public ResponseData requestFriend(Long userId, Long friendId) {
-        if (userMapper.findUserById(userId) == null || userMapper.findUserById(friendId) == null) {
-            return ResponseData.USER_ID_NOT_FOUND;
+    public ResponseDataContainer requestFriend(Long userId, Long friendId) {
+        ResponseDataContainer container = new ResponseDataContainer();
+        ResponseData toSender = null;
+        ResponseData toReceiver = null;
+
+        User sender = null;
+        if ((sender = userMapper.findUserById(userId)) == null
+                || userMapper.findUserById(friendId) == null) {
+            toSender = ResponseData.USER_ID_NOT_FOUND;
+            container.setToSender(toSender);
+            return container;
         }
         if (messageMapper.findRequestByFromIdAndToId(userId, friendId) != null) {
-            return ResponseData.HAVE_ALREADY_REQUESTED;
+            toSender = ResponseData.HAVE_ALREADY_REQUESTED;
+            container.setToSender(toSender);
+            return container;
         }
         MessageDO message = new MessageDO();
         message.setFromId(userId);
@@ -64,50 +73,104 @@ public class FriendService {
         message.setDate(System.currentTimeMillis());
         message.setStatus(2);
         messageMapper.insertMessage(message);
-        ResponseData responseData = ResponseData.ok();
-        responseData.getData().put("message", message);
-        return responseData;
+        toSender = ResponseData.ok(ResponseType.REQUEST_SENDER_OK.getType());
+        toSender.getData().put("id", message.getId());
+        container.setToSender(toSender);
+        toReceiver = ResponseData.ok(ResponseType.REQUEST_RECEIVER_OK.getType());
+        toReceiver.getData().put("id", message.getId());
+        toReceiver.getData().put("userId", sender.getId());
+        toReceiver.getData().put("username", sender.getUsername());
+        toReceiver.getData().put("email", sender.getEmail());
+        toReceiver.getData().put("profile", sender.getProfile());
+        toReceiver.getData().put("date", message.getDate());
+        container.setToReceiver(toReceiver);
+        return container;
     }
 
     @Transactional(rollbackFor = RuntimeException.class)
-    public ResponseData replyFriend(Long id, boolean agree, Long toId) {
+    public ResponseDataContainer replyFriend(Long id, boolean agree, Long toId) {
+        ResponseDataContainer container = new ResponseDataContainer();
+        ResponseData toSender = null;
+        ResponseData toReceiver = null;
+
         MessageDO message = messageMapper.findMessageById(id);
         if (message == null || message.getToId() != toId) {
-            return ResponseData.MESSAGE_NOT_EXIST;
+            toSender = ResponseData.MESSAGE_NOT_EXIST;
+            container.setToSender(toSender);
+            return container;
         }
-        User from = userMapper.findUserById(message.getFromId());
-        User to = userMapper.findUserById(message.getToId());
-        if (to.getId().equals(toId)) {
-            message.setStatus(3);
-            messageMapper.updateMessage(message);
-            if (agree) {
-                if (!friendMapper.findFriendsByUserId(toId).contains(from.getId())) {
-                    // to不存在from好友
-                    Friend friend = new Friend(message.getFromId(), message.getToId());
-                    friendMapper.insertFriend(friend);
-                    friend = new Friend(message.getToId(), message.getFromId());
-                    friendMapper.insertFriend(friend);
-                }
-                if (!friendMapper.findFriendsByUserId(from.getId()).contains(toId)) {
-                    // from不存在to好友
-                    Friend friend = new Friend(message.getFromId(), message.getToId());
-                    friendMapper.insertFriend(friend);
-                    friend = new Friend(message.getToId(), message.getFromId());
-                    friendMapper.insertFriend(friend);
-                }
-            }
-            ResponseData responseData = ResponseData.ok();
-            responseData.getData().put("from", from);
-            responseData.getData().put("to", to);
-            return responseData;
-        } else {
+
+        User sender = userMapper.findUserById(message.getToId());
+        User receiver = userMapper.findUserById(message.getFromId());
+
+        if (!sender.getId().equals(toId)) {
             // 不匹配
-            return ResponseData.MESSAGE_NOT_EXIST;
+            toSender = ResponseData.MESSAGE_NOT_EXIST;
+            container.setToSender(toSender);
+            return container;
+        }
+
+        message.setStatus(3);
+        messageMapper.updateMessage(message);
+
+        if (agree) {
+            // 当前用户同意请求
+            Friend f1 = friendMapper.findFriendByUserId(sender.getId(), receiver.getId());
+            Friend f2 = friendMapper.findFriendByUserId(receiver.getId(), sender.getId());
+
+            toSender = ResponseData.IS_ALREADY_FRIEND;
+
+            if (f1 != null && f2 != null) {
+                // f1 和 f2 都不为空，存在记录
+                container.setToSender(toSender);
+                container.setToReceiver(toReceiver);
+                return container;
+            }
+
+            // f1 和 f2 至少一个是null
+            if (f1 == null) {
+                // 关系缺失，添加
+                f1 = new Friend();
+                f1.setUid(sender.getId());
+                f1.setFriendId(receiver.getId());
+                friendMapper.insertFriend(f1);
+                // 返回当前用户的消息
+                toSender = ResponseData.ok(ResponseType.REPLY_SENDER_OK.getType());
+                toSender.getData().put("id", receiver.getId());
+                toSender.getData().put("username", receiver.getUsername());
+                toSender.getData().put("email", receiver.getEmail());
+                toSender.getData().put("profile", receiver.getProfile());
+            }
+            if (f2 == null) {
+                // 关系缺失，添加
+                f2 = new Friend();
+                f2.setUid(receiver.getId());
+                f2.setFriendId(sender.getId());
+                friendMapper.insertFriend(f2);
+                // 返回发送好友请求的用户的消息
+                toReceiver = ResponseData.ok(ResponseType.REPLY_RECEIVER_OK.getType());
+                toSender.getData().put("id", receiver.getId());
+                toReceiver.getData().put("id", sender.getId());
+                toReceiver.getData().put("username", sender.getUsername());
+                toReceiver.getData().put("email", sender.getEmail());
+                toReceiver.getData().put("profile", sender.getProfile());
+            }
+
+            container.setToSender(toSender);
+            container.setToReceiver(toReceiver);
+            return container;
+        } else {
+            // 当前用户拒绝请求
+            toSender = ResponseData.ok(ResponseType.REPLY_SENDER_OK.getType());
+            container.setToSender(toSender);
+            return container;
         }
     }
 
     @Transactional(rollbackFor = RuntimeException.class)
-    public ResponseData getRequest(Long userId) {
+    public ResponseDataContainer getRequest(Long userId) {
+        ResponseDataContainer container = new ResponseDataContainer();
+        ResponseData toReceiver = null;
         List<Map<String, Object>> collect =
                 messageMapper
                         .findMessageByToIdAndStatus(userId, 2)
@@ -120,13 +183,14 @@ public class FriendService {
                             map.put("username", from.getUsername());
                             map.put("profile", from.getProfile());
                             map.put("email", from.getEmail());
-                            map.put("date", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(request.getDate())));
+                            map.put("date", request.getDate());
                             return map;
                         })
                         .collect(Collectors.toList());
-        ResponseData responseData = ResponseData.ok();
-        responseData.getData().put("list", collect);
-        return responseData;
+        toReceiver = ResponseData.ok(ResponseType.REQUESTS_TO_BE_REPLIED.getType());
+        toReceiver.getData().put("list", collect);
+        container.setToReceiver(toReceiver);
+        return container;
     }
 
 }

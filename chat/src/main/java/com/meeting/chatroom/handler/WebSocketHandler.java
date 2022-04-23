@@ -5,10 +5,10 @@ import com.meeting.chatroom.entity.*;
 import com.meeting.chatroom.service.ChatService;
 import com.meeting.chatroom.service.FriendService;
 import com.meeting.chatroom.util.SpringUtil;
-import com.meeting.common.entity.User;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.group.ChannelGroup;
 import io.netty.handler.codec.http.websocketx.*;
 
 import java.util.HashMap;
@@ -84,7 +84,16 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
 
         // 获取客户端发送的消息
         String content = data.text();
-        MessageVO messageVO = JSON.parseObject(content, MessageVO.class);
+        MessageVO messageVO;
+        try {
+            messageVO = JSON.parseObject(content, MessageVO.class);
+        } catch (RuntimeException exception) {
+            ResponseData toSender = ResponseData.ILLEGAL_MESSAGE_FORMAT;
+            this.channel.writeAndFlush(
+                    new TextWebSocketFrame(JSON.toJSONString(toSender))
+            );
+            return;
+        }
         int type = messageVO.getType();
 
         // 根据type处理不同业务
@@ -132,14 +141,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                         new TextWebSocketFrame(JSON.toJSONString(ResponseData.ID_NOT_FOUND))
                 );
             } else {
-                String reply = messageVO.getMessage();
-                if (!"agree".equals(reply) && !"disagree".equals(reply)) {
-                    this.channel.writeAndFlush(
-                            new TextWebSocketFrame(JSON.toJSONString(ResponseData.ILLEGAL_MESSAGE_FORMAT))
-                    );
-                } else {
-                    handleReply(id, "agree".equals(reply));
-                }
+                handleReply(id, messageVO.isAgree());
             }
         } else if (type == MessageType.PULL_FRIENDS.getType()) {
             // 获取好友信息
@@ -180,24 +182,23 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
      * @param message MessageDO对象 封装消息
      */
     private void sendToOnlineUser(Channel sender, Channel receiver, MessageDO message) {
-        ResponseData responseData = chatService.sendToUser(message, true);
-        if (!responseData.isSuccess()) {
+        ResponseDataContainer container = chatService.sendToUser(message, true);
+        ResponseData toSender = container.getToSender();
+        ResponseData toReceiver = container.getToReceiver();
+        if (!toSender.isSuccess()) {
             // success == false
             sender.writeAndFlush(
-                    new TextWebSocketFrame(JSON.toJSONString(responseData))
+                    new TextWebSocketFrame(JSON.toJSONString(toSender))
             );
         } else {
             // 发送消息给接收方
             receiver.writeAndFlush(
-                    new TextWebSocketFrame(JSON.toJSONString(responseData))
+                    new TextWebSocketFrame(JSON.toJSONString(toReceiver))
             );
 
             // 发送响应给发送方
-            Long id = ((MessageVO) responseData.getData().get("message")).getId();
-            responseData.getData().clear();
-            responseData.getData().put("id", id);
             sender.writeAndFlush(
-                    new TextWebSocketFrame(JSON.toJSONString(responseData))
+                    new TextWebSocketFrame(JSON.toJSONString(toSender))
             );
         }
     }
@@ -208,18 +209,17 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
      * @param message MessageDO对象 封装消息
      */
     private void sendToOfflineUser(Channel sender, MessageDO message) {
-        ResponseData responseData = chatService.sendToUser(message, false);
-        if (!responseData.isSuccess()) {
+        ResponseDataContainer container = chatService.sendToUser(message, false);
+        ResponseData toSender = container.getToSender();
+        if (!toSender.isSuccess()) {
             // success == false
             sender.writeAndFlush(
-                    new TextWebSocketFrame(JSON.toJSONString(responseData))
+                    new TextWebSocketFrame(JSON.toJSONString(toSender))
             );
         } else {
-            Long id = ((MessageVO) responseData.getData().get("message")).getId();
-            responseData.getData().clear();
-            responseData.getData().put("id", id);
+            // 发送响应给发送方
             sender.writeAndFlush(
-                    new TextWebSocketFrame(JSON.toJSONString(responseData))
+                    new TextWebSocketFrame(JSON.toJSONString(toSender))
             );
         }
     }
@@ -230,9 +230,9 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
      * @param message MessageVO对象 封装消息Id
      */
     private void sign(Channel channel, MessageVO message) {
-        ResponseData responseData = chatService.sign(message.getId(), this.fromId);
+        ResponseDataContainer container = chatService.sign(message.getId(), this.fromId);
         channel.writeAndFlush(
-                new TextWebSocketFrame(JSON.toJSONString(responseData))
+                new TextWebSocketFrame(JSON.toJSONString(container.getToReceiver()))
         );
     }
 
@@ -242,10 +242,12 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
      * @param toId 接受方id
      */
     private void handleRequest(Long fromId, Long toId) {
-        ResponseData responseData = friendService.requestFriend(fromId, toId);
-        if (responseData.isSuccess()) {
+        ResponseDataContainer container = friendService.requestFriend(fromId, toId);
+        ResponseData toSender = container.getToSender();
+        ResponseData toReceiver = container.getToReceiver();
+        if (toSender.isSuccess()) {
             // 请求成功
-            if (responseData != ResponseData.HAVE_ALREADY_REQUESTED) {
+            if (toSender != ResponseData.HAVE_ALREADY_REQUESTED) {
                 // 不是重复请求
                 Channel receiver = null;
                 ChatChannelGroup.LOCK.readLock().lock();
@@ -256,76 +258,60 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                 }
                 if (receiver != null) {
                     // 对方在线
-                    MessageDO message = (MessageDO) responseData.getData().get("message");
-                    MessageVO msg = new MessageVO(message, 2);
-                    responseData.getData().put("message", msg);
                     receiver.writeAndFlush(
-                            new TextWebSocketFrame(JSON.toJSONString(responseData))
+                            new TextWebSocketFrame(JSON.toJSONString(toReceiver))
                     );
                 }
             }
             this.channel.writeAndFlush(
-                    new TextWebSocketFrame(JSON.toJSONString(ResponseData.ok()))
+                    new TextWebSocketFrame(JSON.toJSONString(toSender))
             );
         } else {
             this.channel.writeAndFlush(
-                    new TextWebSocketFrame(JSON.toJSONString(ResponseData.ok()))
+                    new TextWebSocketFrame(JSON.toJSONString(toSender))
             );
         }
     }
 
     /**
+     * todo 代码结构需要修改
      * 处理回复好友请求
      * @param id 请求id
      * @param agree 是否同意
      */
     private void handleReply(Long id, boolean agree) {
-        ResponseData responseData = friendService.replyFriend(id, agree, this.fromId);
-        if (responseData.isSuccess()) {
-            // 添加成功
-            // 请求用户
-            User from = (User) responseData.getData().get("from");
-            // 接受用户
-            User to = (User) responseData.getData().get("to");
-            Channel sender;
-            Channel receiver;
-            ChatChannelGroup.LOCK.readLock().lock();
-            try {
-                sender = ChatChannelGroup.ID_CHANNEL_REF.get(from.getId());
-                receiver = ChatChannelGroup.ID_CHANNEL_REF.get(to.getId());
-            } finally {
-                ChatChannelGroup.LOCK.readLock().unlock();
-            }
-            Map<String, Object> map = new HashMap<>();
-            if (sender != null && agree) {
-                // 发送方在线，并且接收方同意请求
-                responseData = ResponseData.ok();
-                map.put("id", to.getId());
-                map.put("username", to.getUsername());
-                map.put("email", to.getEmail());
-                map.put("profile", to.getProfile());
-                responseData.getData().put("user", map);
-                sender.writeAndFlush(
-                        new TextWebSocketFrame(JSON.toJSONString(responseData))
+        ResponseDataContainer container = friendService.replyFriend(id, agree, this.fromId);
+        ResponseData toSender = container.getToSender();
+        ResponseData toReceiver = container.getToReceiver();
+
+        if (toSender.isSuccess()) {
+            if (agree) {
+                this.channel.writeAndFlush(
+                        new TextWebSocketFrame(JSON.toJSONString(toSender))
                 );
-            }
-            if (receiver != null) {
-                // 接受方在线
-                responseData = ResponseData.ok();
-                if (agree) {
-                    map.put("id", from.getId());
-                    map.put("username", from.getUsername());
-                    map.put("email", from.getEmail());
-                    map.put("profile", from.getProfile());
-                    responseData.getData().put("user", map);
+                if (toReceiver != null) {
+                    ChatChannelGroup.LOCK.readLock().lock();
+                    Channel receiver = null;
+                    try {
+                        Long receiverId = (Long) toSender.getData().get("id");
+                        receiver = ChatChannelGroup.ID_CHANNEL_REF.get(receiverId);
+                    } finally {
+                        ChatChannelGroup.LOCK.readLock().unlock();
+                    }
+                    if (receiver != null) {
+                        receiver.writeAndFlush(
+                                new TextWebSocketFrame(JSON.toJSONString(toReceiver))
+                        );
+                    }
                 }
-                receiver.writeAndFlush(
-                        new TextWebSocketFrame(JSON.toJSONString(responseData))
+            } else {
+                this.channel.writeAndFlush(
+                        new TextWebSocketFrame(JSON.toJSONString(toSender))
                 );
             }
         } else {
             this.channel.writeAndFlush(
-                    new TextWebSocketFrame(JSON.toJSONString(ResponseData.ok()))
+                    new TextWebSocketFrame(JSON.toJSONString(toSender))
             );
         }
     }
@@ -335,9 +321,9 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
      * @param uid 用户id
      */
     private void pullFriends(Long uid) {
-        ResponseData responseData = friendService.findFriends(uid);
+        ResponseDataContainer container = friendService.findFriends(uid);
         this.channel.writeAndFlush(
-                new TextWebSocketFrame(JSON.toJSONString(responseData))
+                new TextWebSocketFrame(JSON.toJSONString(container.getToSender()))
         );
     }
 
@@ -346,9 +332,9 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
      * @param uid 用户id
      */
     private void pullRequests(Long uid) {
-        ResponseData responseData = friendService.getRequest(uid);
+        ResponseDataContainer container = friendService.getRequest(uid);
         this.channel.writeAndFlush(
-                new TextWebSocketFrame(JSON.toJSONString(responseData))
+                new TextWebSocketFrame(JSON.toJSONString(container.getToReceiver()))
         );
     }
 
@@ -357,9 +343,9 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
      * @param uid 用户id
      */
     private void handlePullUnsignedMessage(long uid) {
-        ResponseData responseData = chatService.selectUnsignedMessage(uid);
+        ResponseDataContainer container = chatService.selectUnsignedMessage(uid);
         this.channel.writeAndFlush(
-                new TextWebSocketFrame(JSON.toJSONString(responseData))
+                new TextWebSocketFrame(JSON.toJSONString(container.getToReceiver()))
         );
     }
 
@@ -371,9 +357,9 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
      * @param num 总记录数目
      */
     private void handlePullHistoryMessage(long uid1, long uid2, int start, int num) {
-        ResponseData responseData = chatService.selectHistoryMessage(uid1, uid2, start, num);
+        ResponseDataContainer container = chatService.selectHistoryMessage(uid1, uid2, start, num);
         this.channel.writeAndFlush(
-                new TextWebSocketFrame(JSON.toJSONString(responseData))
+                new TextWebSocketFrame(JSON.toJSONString(container.getToReceiver()))
         );
     }
 

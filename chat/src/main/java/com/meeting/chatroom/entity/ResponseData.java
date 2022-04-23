@@ -5,33 +5,35 @@ import java.util.Map;
 
 public class ResponseData {
 
-    public final static ResponseData ID_NOT_FOUND = new ResponseData(false, "id缺失");
+    public final static ResponseData ID_NOT_FOUND = new ResponseData(false, "MISSING_MESSAGE_ID");
 
-    public final static ResponseData MESSAGE_TOO_LONG = new ResponseData(false, "消息过长");
+    public final static ResponseData MESSAGE_TOO_LONG = new ResponseData(false, "MESSAGE_TOO_LONG");
 
-    public final static ResponseData USER_ID_NOT_FOUND = new ResponseData(false, "用户id不存在");
+    public final static ResponseData USER_ID_NOT_FOUND = new ResponseData(false, "MISSING_USER_ID");
 
-    public final static ResponseData MESSAGE_NOT_EXIST = new ResponseData(false, "消息不存在");
+    public final static ResponseData MESSAGE_NOT_EXIST = new ResponseData(false, "MESSAGE_NOT_EXIST");
 
-    public final static ResponseData HAVE_ALREADY_REQUESTED = new ResponseData(true, "已经发送过");
+    public final static ResponseData HAVE_ALREADY_REQUESTED = new ResponseData(true, "HAVE_ALREADY_REQUESTED");
 
-    public final static ResponseData ILLEGAL_MESSAGE_FORMAT = new ResponseData(false, "格式错误");
+    public final static ResponseData ILLEGAL_MESSAGE_FORMAT = new ResponseData(false, "ILLEGAL_MESSAGE_FORMAT");
 
-    public final static ResponseData TYPE_NOT_ALLOWED = new ResponseData(false, "不支持的消息类型");
+    public final static ResponseData TYPE_NOT_ALLOWED = new ResponseData(false, "TYPE_NOT_ALLOWED");
+
+    public final static ResponseData IS_ALREADY_FRIEND = new ResponseData(true, "IS_ALREADY_FRIEND");
 
     private boolean success;
-    private String message;
+    private String type;
     private final Map<String, Object> data = new HashMap<>();
 
     public ResponseData() {}
 
-    public ResponseData(boolean success, String message) {
+    public ResponseData(boolean success, String type) {
         this.success = success;
-        this.message = message;
+        this.type = type;
     }
 
-    public static ResponseData ok() {
-        return new ResponseData(true, "ok");
+    public static ResponseData ok(String message) {
+        return new ResponseData(true, message);
     }
 
     public boolean isSuccess() {
@@ -42,12 +44,12 @@ public class ResponseData {
         this.success = success;
     }
 
-    public String getMessage() {
-        return message;
+    public String getType() {
+        return type;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setType(String type) {
+        this.type = type;
     }
 
     public Map<String, Object> getData() {
@@ -58,7 +60,7 @@ public class ResponseData {
     public String toString() {
         return "ResponseData{" +
                 "success=" + success +
-                ", message='" + message + '\'' +
+                ", type='" + type + '\'' +
                 ", data=" + data +
                 '}';
     }

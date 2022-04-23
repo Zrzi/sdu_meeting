@@ -9,6 +9,13 @@
         <id property="friendId" column="friend_id" />
     </resultMap>
 
+    <select id="findFriendByUserId" resultMap="friend">
+        SELECT `user_id`, `friend_id`
+        FROM `friend`
+        where `user_id` = #{uid1}
+          AND `friend_id` = #{uid2}
+    </select>
+
     <select id="findFriendsByUserId" parameterType="Long" resultType="Long">
         SELECT `friend_id`
         FROM `friend`

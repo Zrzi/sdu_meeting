@@ -12,6 +12,14 @@ import java.util.List;
 public interface FriendMapper {
 
     /**
+     * 根据两个用户id查询关系
+     * @param uid1 用户id1
+     * @param uid2 用户id2
+     * @return
+     */
+    Friend findFriendByUserId(@Param("uid1") Long uid1, @Param("uid2") Long uid2);
+
+    /**
      * 根据用户id查询朋友id
      * @param id
      * @return
