@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ChatService {
@@ -37,7 +39,7 @@ public class ChatService {
                 toSender.getData().put("id", message.getId());
                 if (isOnline) {
                     toReceiver= ResponseData.ok(ResponseType.MESSAGE_RECEIVER_OK.getType());
-                    toReceiver.getData().put("message", message);
+                    toReceiver.getData().put("message", message.toMap());
                 }
             }
         }
@@ -65,9 +67,13 @@ public class ChatService {
     public ResponseDataContainer selectUnsignedMessage(long uid) {
         ResponseDataContainer container = new ResponseDataContainer();
         ResponseData toReceiver = null;
-        List<MessageDO> list = messageMapper.findMessageByToIdAndStatus(uid, 0);
+        List<Map<String, Object>> collect = messageMapper
+                .findMessageByToIdAndStatus(uid, 0)
+                .stream()
+                .map(MessageDO::toMap)
+                .collect(Collectors.toList());
         toReceiver = ResponseData.ok(ResponseType.UNSIGNED_MESSAGE.getType());
-        toReceiver.getData().put("list", list);
+        toReceiver.getData().put("list", collect);
         container.setToReceiver(toReceiver);
         return container;
     }
@@ -75,9 +81,13 @@ public class ChatService {
     public ResponseDataContainer selectHistoryMessage(long uid1, long uid2, int start, int num) {
         ResponseDataContainer container = new ResponseDataContainer();
         ResponseData toReceiver = null;
-        List<MessageDO> message = messageMapper.findHistoryMessage(uid1, uid2, start, num);
+        List<Map<String, Object>> collect = messageMapper
+                .findHistoryMessage(uid1, uid2, start, num)
+                .stream()
+                .map(MessageDO::toMap)
+                .collect(Collectors.toList());
         toReceiver = ResponseData.ok(ResponseType.HISTORY_MESSAGE.getType());
-        toReceiver.getData().put("list", message);
+        toReceiver.getData().put("list", collect);
         container.setToReceiver(toReceiver);
         return container;
     }

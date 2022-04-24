@@ -21,6 +21,12 @@ public class ResponseData {
 
     public final static ResponseData IS_ALREADY_FRIEND = new ResponseData(true, "IS_ALREADY_FRIEND");
 
+    public final static ResponseData SERVER_PROBLEM = new ResponseData(false, "SERVER_PROBLEM");
+
+    public final static ResponseData UNAUTHORIZED = new ResponseData(false, "UNAUTHORIZED");
+
+    public final static ResponseData BAD_REQUEST = new ResponseData(false, "BAD_REQUEST");
+
     private boolean success;
     private String type;
     private final Map<String, Object> data = new HashMap<>();

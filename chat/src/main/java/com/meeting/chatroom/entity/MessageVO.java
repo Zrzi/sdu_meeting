@@ -40,7 +40,7 @@ public class MessageVO {
      * type = 2，好友请求
      * type = 3，回复请求
      */
-    private int type;
+    private Integer type;
 
     /**
      * 日期
@@ -108,11 +108,11 @@ public class MessageVO {
         this.num = num;
     }
 
-    public int getType() {
+    public Integer getType() {
         return type;
     }
 
-    public void setType(int type) {
+    public void setType(Integer type) {
         this.type = type;
     }
 

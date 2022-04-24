@@ -58,24 +58,55 @@ public class FriendService {
         User sender = null;
         if ((sender = userMapper.findUserById(userId)) == null
                 || userMapper.findUserById(friendId) == null) {
+            // 一方用户不存在
             toSender = ResponseData.USER_ID_NOT_FOUND;
             container.setToSender(toSender);
             return container;
         }
+
         if (messageMapper.findRequestByFromIdAndToId(userId, friendId) != null) {
+            // 已经发送过请求
             toSender = ResponseData.HAVE_ALREADY_REQUESTED;
             container.setToSender(toSender);
             return container;
         }
+
+        Friend f1 = null;
+        Friend f2 = null;
+        if ((f1 = friendMapper.findFriendByUserId(userId, friendId)) != null
+                | (f2 = friendMapper.findFriendByUserId(friendId, userId)) != null) {
+            // 已经是好友，至多有一个是null
+            if (f1 == null) {
+                f1 = new Friend();
+                f1.setUid(userId);
+                f1.setFriendId(friendId);
+                friendMapper.insertFriend(f1);
+            }
+            if (f2 == null) {
+                f2 = new Friend();
+                f2.setUid(friendId);
+                f2.setFriendId(userId);
+                friendMapper.insertFriend(f2);
+            }
+            toSender = ResponseData.IS_ALREADY_FRIEND;
+            container.setToSender(toSender);
+            return container;
+        }
+
+        // 添加好友请求
         MessageDO message = new MessageDO();
         message.setFromId(userId);
         message.setToId(friendId);
         message.setDate(System.currentTimeMillis());
         message.setStatus(2);
         messageMapper.insertMessage(message);
+
+        // 返回给发送方的响应
         toSender = ResponseData.ok(ResponseType.REQUEST_SENDER_OK.getType());
         toSender.getData().put("id", message.getId());
         container.setToSender(toSender);
+
+        // 返回给接收方的响应
         toReceiver = ResponseData.ok(ResponseType.REQUEST_RECEIVER_OK.getType());
         toReceiver.getData().put("id", message.getId());
         toReceiver.getData().put("userId", sender.getId());
@@ -84,6 +115,7 @@ public class FriendService {
         toReceiver.getData().put("profile", sender.getProfile());
         toReceiver.getData().put("date", message.getDate());
         container.setToReceiver(toReceiver);
+
         return container;
     }
 

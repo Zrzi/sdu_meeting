@@ -1,5 +1,8 @@
 package com.meeting.chatroom.entity;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class MessageDO {
 
     /**
@@ -106,6 +109,16 @@ public class MessageDO {
 
     public void setStatus(int status) {
         this.status = status;
+    }
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", this.id);
+        map.put("message", this.message);
+        map.put("date", this.date);
+        map.put("toId", this.toId);
+        map.put("fromId", this.fromId);
+        return map;
     }
 
     @Override

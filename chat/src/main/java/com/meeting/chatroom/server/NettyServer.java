@@ -1,8 +1,7 @@
 package com.meeting.chatroom.server;
 
-import com.meeting.chatroom.handler.AuthorizationHandler;
+import com.meeting.chatroom.entity.ChatChannelGroup;
 import com.meeting.chatroom.handler.WebSocketHandler;
-import com.meeting.chatroom.util.SpringUtil;
 import com.meeting.common.util.JwtTokenUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -28,13 +27,7 @@ public class NettyServer {
     @Value("${netty.server.port}")
     private int port;
 
-    @Autowired
-    private JwtTokenUtil jwtTokenUtil;
-
     private void startServer() {
-
-        final AuthorizationHandler authorizationHandler = new AuthorizationHandler(jwtTokenUtil);
-
         //服务端需要2个线程组  boss处理客户端连接  work进行客服端连接之后的处理
         EventLoopGroup boss = new NioEventLoopGroup();
         EventLoopGroup work = new NioEventLoopGroup();
@@ -50,8 +43,6 @@ public class NettyServer {
                                     .addLast("http-codec",new HttpServerCodec())
                                     // HttpObjectAggregator：将HTTP消息的多个部分合成一条完整的HTTP消息
                                     .addLast("aggregator",new HttpObjectAggregator(65536))
-                                    // 鉴权
-                                    .addLast("authorization", authorizationHandler)
                                     // ChunkedWriteHandler：向客户端发送HTML5文件
                                     .addLast("http-chunked",new ChunkedWriteHandler())
                                     .addLast("websocket", new WebSocketServerProtocolHandler("/ws", "WebSocket", true, 65536 * 10))
