@@ -45,7 +45,7 @@ public class NettyServer {
                                     .addLast("aggregator",new HttpObjectAggregator(65536))
                                     // ChunkedWriteHandler：向客户端发送HTML5文件
                                     .addLast("http-chunked",new ChunkedWriteHandler())
-                                    .addLast("websocket", new WebSocketServerProtocolHandler("/ws", "WebSocket", true, 65536 * 10))
+                                    // .addLast("websocket", new WebSocketServerProtocolHandler("/ws", "WebSocket", true, 65536 * 10))
                                     // 进行设置心跳检测
                                     // .addLast("idle", new IdleStateHandler(60,30,60*30, TimeUnit.SECONDS))
                                     // 配置通道处理来进行业务处理

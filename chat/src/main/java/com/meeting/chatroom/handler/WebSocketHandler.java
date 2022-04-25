@@ -6,17 +6,24 @@ import com.meeting.chatroom.service.ChatService;
 import com.meeting.chatroom.service.FriendService;
 import com.meeting.chatroom.util.SpringUtil;
 import com.meeting.common.util.JwtTokenUtil;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.websocketx.*;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.util.AttributeKey;
 
-public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
+import static io.netty.handler.codec.http.HttpMethod.GET;
+import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
+import static io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED;
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
-    private Channel channel;
+public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
-    private Long fromId;
+    private ChannelPromise handshakePromise;
+
+    private Channel channel = null;
+
+    private Long fromId = null;
 
     private final JwtTokenUtil jwtTokenUtil = SpringUtil.getBean(JwtTokenUtil.class);
 
@@ -25,6 +32,11 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
     private final FriendService friendService = SpringUtil.getBean(FriendService.class);
 
     private final ChatChannelGroup chatChannelGroup = SpringUtil.getBean(ChatChannelGroup.class);
+
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+        handshakePromise = ctx.newPromise();
+    }
 
     /**
      * 活跃的通道  也可以当作用户连接上客户端进行使用
@@ -45,6 +57,8 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         // todo 异常处理
+        System.out.println(cause.getClass());
+        System.out.println(cause.getMessage());
         sendMessageToChannel(ctx.channel(), ResponseData.SERVER_PROBLEM);
     }
 
@@ -59,30 +73,25 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
         chatChannelGroup.removeChannel(this.fromId, this.channel);
     }
 
-    @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        // super.userEventTriggered(ctx, evt);
-        if (evt instanceof WebSocketServerProtocolHandler.HandshakeComplete) {
-            WebSocketServerProtocolHandler.HandshakeComplete complete = (WebSocketServerProtocolHandler.HandshakeComplete) evt;
-            HttpHeaders headers = complete.requestHeaders();
-            if (!"websocket".equals(headers.get("Upgrade"))) {
-                sendMessageToChannel(ctx.channel(), ResponseData.BAD_REQUEST);
-                ctx.channel().close();
-                return;
-            }
-            String token = headers.get("Authorization");
-            Long uid = null;
-            if (token == null || !jwtTokenUtil.validateToken(token)
-                    || (uid = jwtTokenUtil.getUserIdFromToken(token)) == null) {
-                sendMessageToChannel(ctx.channel(), ResponseData.UNAUTHORIZED);
-                ctx.channel().close();
-                return;
-            }
-            this.fromId = uid;
-            this.channel = ctx.channel();
-            this.chatChannelGroup.addChannel(this.fromId, this.channel);
-        }
-    }
+//    @Override
+//    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+//        // super.userEventTriggered(ctx, evt);
+//        if (evt instanceof WebSocketServerProtocolHandler.HandshakeComplete) {
+//            WebSocketServerProtocolHandler.HandshakeComplete complete = (WebSocketServerProtocolHandler.HandshakeComplete) evt;
+//            HttpHeaders headers = complete.requestHeaders();
+//            String token = headers.get("Sec-WebSocket-Protocol");
+//            Long uid = null;
+//            if (token == null || !jwtTokenUtil.validateToken(token)
+//                    || (uid = jwtTokenUtil.getUserIdFromToken(token)) == null) {
+//                sendMessageToChannel(ctx.channel(), ResponseData.UNAUTHORIZED);
+//                ctx.channel().close();
+//                return;
+//            }
+//            this.fromId = uid;
+//            this.channel = ctx.channel();
+//            this.chatChannelGroup.addChannel(this.fromId, this.channel);
+//        }
+//    }
 
     /**
      * 服务器接受客户端的数据信息
@@ -90,7 +99,62 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
      * @param data
      */
     @Override
-    public void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame data) throws Exception {
+    public void channelRead0(ChannelHandlerContext ctx, Object data) throws Exception {
+        if (data instanceof FullHttpRequest) {
+            handleHttpRequest(ctx, (FullHttpRequest) data);
+        } else if (data instanceof TextWebSocketFrame) {
+            handleWebSocketFrame((TextWebSocketFrame) data);
+        }
+    }
+
+    private void handleHttpRequest(ChannelHandlerContext ctx, FullHttpRequest req) {
+        if (!GET.equals(req.method())) {
+            sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, FORBIDDEN, ctx.alloc().buffer(0)));
+            return;
+        }
+
+        String token = req.headers().get("Sec-WebSocket-Protocol");
+        if (token == null || !jwtTokenUtil.validateToken(token)
+                || (this.fromId = jwtTokenUtil.getUserIdFromToken(token)) == null) {
+            sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, UNAUTHORIZED, ctx.alloc().buffer(0)));
+            return;
+        }
+
+        this.channel = ctx.channel();
+        this.chatChannelGroup.addChannel(this.fromId, this.channel);
+
+        final WebSocketServerHandshakerFactory wsFactory =
+                new WebSocketServerHandshakerFactory(getWebSocketLocation(ctx.pipeline(), req, "/ws"),
+                        "WebSocket", true, 65536 * 10);
+        final WebSocketServerHandshaker handshaker = wsFactory.newHandshaker(req);
+        final ChannelPromise localHandshakePromise = handshakePromise;
+        if (handshaker == null) {
+            WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
+        } else {
+            // setHandshaker(ctx.channel(), handshaker);
+            HttpHeaders headers = new DefaultHttpHeaders();
+            headers.set("Access-Control-Allow-Methods", "*");
+            headers.set("Access-Control-Allow-Credentials", "true");
+            headers.set("Access-Control-Allow-Origin", "*");
+            headers.set("Access-Control-Allow-Headers", "*");
+            headers.set("Access-Control-Expose-Headers", "*");
+            headers.set("Sec-WebSocket-Protocol", token);
+            final ChannelFuture handshakeFuture = handshaker.handshake(ctx.channel(), req, headers, ctx.newPromise());
+            handshakeFuture.addListener(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture future) {
+                    if (!future.isSuccess()) {
+                        localHandshakePromise.tryFailure(future.cause());
+                        ctx.fireExceptionCaught(future.cause());
+                    } else {
+                        localHandshakePromise.trySuccess();
+                    }
+                }
+            });
+        }
+    }
+
+    private void handleWebSocketFrame(TextWebSocketFrame data) {
         // 获取客户端发送的消息
         String content = data.text();
         MessageVO messageVO;
@@ -312,10 +376,31 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
         sendMessageToChannel(channel, ResponseData.TYPE_NOT_ALLOWED);
     }
 
+    private void sendHttpResponse(ChannelHandlerContext ctx, HttpRequest req, HttpResponse res) {
+        ChannelFuture f = ctx.channel().writeAndFlush(res);
+        if (!HttpUtil.isKeepAlive(req) || res.status().code() != 200) {
+            f.addListener(ChannelFutureListener.CLOSE);
+        }
+    }
+
     private void sendMessageToChannel(Channel channel, ResponseData responseData) {
         channel.writeAndFlush(
                 new TextWebSocketFrame(JSON.toJSONString(responseData))
         );
+    }
+
+    private String getWebSocketLocation(ChannelPipeline cp, HttpRequest req, String path) {
+        String protocol = "ws";
+        if (cp.get(SslHandler.class) != null) {
+            // SSL in use so use Secure WebSockets
+            protocol = "wss";
+        }
+        String host = req.headers().get(HttpHeaderNames.HOST);
+        return protocol + "://" + host + path;
+    }
+
+    private void setHandshaker(Channel channel, WebSocketServerHandshaker handshaker) {
+        channel.attr(AttributeKey.valueOf(WebSocketHandler.class, "HANDSHAKER")).set(handshaker);
     }
 
 }
