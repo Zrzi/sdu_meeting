@@ -35,8 +35,12 @@ public class PictureUtil {
     public void handlePicture(String type, MultipartFile file, long uid, String fileType)
             throws IOException{
         String originalName = file.getOriginalFilename();
+        String fileType_in=file.getContentType();
         if (originalName == null) {
             throw new BaseException("文件名不能为空");
+        }
+        if(!("image/jpeg").equals(fileType_in)&&!("image/png").equals(fileType_in)){
+            throw new FileFormatException("不支持的文件格式，文件头表示的格式不支持");
         }
         if (!"jpeg".equals(fileType) && !"png".equals(fileType)) {
             throw new FileFormatException("不支持的文件格式，fileType参数");
