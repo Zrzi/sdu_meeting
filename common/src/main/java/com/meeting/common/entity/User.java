@@ -1,6 +1,8 @@
 package com.meeting.common.entity;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class User {
 
@@ -96,6 +98,15 @@ public class User {
 
     public void setProfile(String profile) {
         this.profile = profile;
+    }
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("uid", id);
+        map.put("username", username);
+        map.put("email", email);
+        map.put("profile", profile);
+        return map;
     }
 
     @Override

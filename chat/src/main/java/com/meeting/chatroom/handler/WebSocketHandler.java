@@ -73,26 +73,6 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
         chatChannelGroup.removeChannel(this.fromId, this.channel);
     }
 
-//    @Override
-//    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-//        // super.userEventTriggered(ctx, evt);
-//        if (evt instanceof WebSocketServerProtocolHandler.HandshakeComplete) {
-//            WebSocketServerProtocolHandler.HandshakeComplete complete = (WebSocketServerProtocolHandler.HandshakeComplete) evt;
-//            HttpHeaders headers = complete.requestHeaders();
-//            String token = headers.get("Sec-WebSocket-Protocol");
-//            Long uid = null;
-//            if (token == null || !jwtTokenUtil.validateToken(token)
-//                    || (uid = jwtTokenUtil.getUserIdFromToken(token)) == null) {
-//                sendMessageToChannel(ctx.channel(), ResponseData.UNAUTHORIZED);
-//                ctx.channel().close();
-//                return;
-//            }
-//            this.fromId = uid;
-//            this.channel = ctx.channel();
-//            this.chatChannelGroup.addChannel(this.fromId, this.channel);
-//        }
-//    }
-
     /**
      * 服务器接受客户端的数据信息
      * @param ctx
@@ -209,13 +189,16 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
             }
         } else if (type == MessageType.PULL_FRIENDS.getType()) {
             // 获取好友信息
-            pullFriends(this.fromId);
+            // pullFriends(this.fromId); 暂时不需要
+            handleDefault(this.channel);
         } else if (type == MessageType.PULL_REQUESTS.getType()) {
             // 获取好友请求
-            pullRequests(this.fromId);
+            // pullRequests(this.fromId);
+            handleDefault(this.channel);
         } else if (type == MessageType.PULL_UNSIGNED_MESSAGE.getType()) {
             // 获取未签收消息
-            handlePullUnsignedMessage(this.fromId);
+            // handlePullUnsignedMessage(this.fromId);
+            handleDefault(this.channel);
         } else if (type == MessageType.PULL_HISTORY_MESSAGE.getType()) {
             // 获取历史消息记录
             if (messageVO.getToId() == null) {

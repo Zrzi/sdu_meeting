@@ -36,6 +36,19 @@ public class ChatChannelGroup {
         }
     }
 
+    public void removeChannel(Channel channel) {
+        LOCK.writeLock().lock();
+        try {
+            Long uid = CHANNEL_ID_REF.get(channel);
+            CHANNEL_ID_REF.remove(channel);
+            if (uid != null) {
+                ID_CHANNEL_REF.remove(uid);
+            }
+        } finally {
+            LOCK.writeLock().unlock();
+        }
+    }
+
     public void print() {
         LOCK.readLock().lock();
         try {
