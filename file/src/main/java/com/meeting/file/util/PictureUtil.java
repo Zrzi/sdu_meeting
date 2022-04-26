@@ -30,7 +30,7 @@ public class PictureUtil {
      * 处理图片
      * @param type 类型
      * @param file 图片
-     * @patam fileType 图片格式
+     * @param fileType 图片格式
      */
     public void handlePicture(String type, MultipartFile file, long uid, String fileType)
             throws IOException{
