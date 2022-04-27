@@ -13,8 +13,8 @@ public class Config {
     @Bean
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
         // 设置最大等待时间
-        builder.setConnectTimeout(Duration.ofSeconds(5));
-        builder.setReadTimeout(Duration.ofSeconds(5));
+        builder.setConnectTimeout(Duration.ofMillis(500));
+        builder.setReadTimeout(Duration.ofMillis(500));
         return builder.build();
     }
 

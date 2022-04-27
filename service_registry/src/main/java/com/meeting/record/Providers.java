@@ -1,6 +1,7 @@
 package com.meeting.record;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.meeting.common.entity.Service;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +30,8 @@ public class Providers {
      */
     private final Map<String, List<Service>> servicesMap = new HashMap<>();
 
+    private boolean modified = false;
+
     /**
      * 当有微服务需要注册时，加入map中
      * @param service 微服务
@@ -50,6 +53,7 @@ public class Providers {
             }
             serviceList.add(service);
             servicesMap.put(service.getServiceName(), serviceList);
+            modified = true;
             return true;
         } finally {
             lock.writeLock().unlock();
@@ -68,6 +72,7 @@ public class Providers {
             Service remove = serviceMap.remove(id);
             List<Service> services = servicesMap.get(remove.getServiceName());
             services.remove(remove);
+            modified = true;
             return true;
         } finally {
             lock.writeLock().unlock();
@@ -78,10 +83,11 @@ public class Providers {
         return serviceMap.get(id);
     }
 
-    public String getAllCopy() {
+    public Map<Integer, Service> getAllCopy() {
         lock.readLock().lock();
         try {
-            return JSON.toJSONString(servicesMap);
+            String message = JSON.toJSONString(serviceMap);
+            return JSON.parseObject(message, new TypeReference<Map<Integer, Service>>(){});
         } finally {
             lock.readLock().unlock();
         }
@@ -90,12 +96,11 @@ public class Providers {
     public int[] keys() {
         lock.readLock().lock();
         try {
-            int[] keys = new int[serviceMap.size()];
-            Iterator<Integer> iterator = serviceMap.keySet().iterator();
-            for (int i=0; iterator.hasNext(); ++i) {
-                keys[i] = iterator.next();
-            }
-            return keys;
+            return serviceMap
+                    .keySet()
+                    .stream()
+                    .mapToInt(Integer::valueOf)
+                    .toArray();
         } finally {
             lock.readLock().unlock();
         }
@@ -126,6 +131,15 @@ public class Providers {
         lock.readLock().lock();
         try {
             return serviceMap.containsKey(id);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    public boolean isModified() {
+        lock.readLock().lock();
+        try {
+            return modified;
         } finally {
             lock.readLock().unlock();
         }

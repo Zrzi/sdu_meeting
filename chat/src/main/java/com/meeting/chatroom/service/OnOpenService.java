@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -42,7 +43,17 @@ public class OnOpenService {
         List<Map<String, Object>> requests = messageMapper
                 .findMessageByToIdAndStatus(uid, 2)
                 .stream()
-                .map(MessageDO::toMap)
+                .map((request) -> {
+                    Map<String, Object> map = new HashMap<>();
+                    User from = userMapper.findUserById(request.getFromId());
+                    map.put("id", request.getId());
+                    map.put("uid", from.getId());
+                    map.put("username", from.getUsername());
+                    map.put("profile", from.getProfile());
+                    map.put("email", from.getEmail());
+                    map.put("date", request.getDate());
+                    return map;
+                })
                 .collect(Collectors.toList());
         ResponseData responseData = new ResponseData(200, "ok");
         responseData.getData().put("friends", friends);

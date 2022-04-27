@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpServletRequest;
+
 @Controller
 public class RegistryController {
 
@@ -25,16 +27,15 @@ public class RegistryController {
 
     @ResponseBody
     @PostMapping("/registerProvider")
-    public ResponseData registerProvider(@RequestParam("serviceName") String serviceName,
-                                         @RequestParam("ip") String ip,
-                                         @RequestParam("port") Integer port) {
-        ResponseData responseData;
+    public ResponseData registerProvider(HttpServletRequest request,
+                                         @RequestParam("service_name") String serviceName) {
+        ResponseData responseData = null;
         Service service = new Service();
         Integer id = counter.getNext();
         service.setServiceId(id);
         service.setServiceName(serviceName);
-        service.setIp(ip);
-        service.setPort(port);
+        service.setIp(request.getRemoteAddr());
+        service.setPort(request.getRemotePort());
         if (providers.addRecord(service)) {
             responseData = new ResponseData(200, "ok");
             responseData.getData().put("id", id);
@@ -46,16 +47,15 @@ public class RegistryController {
 
     @ResponseBody
     @PostMapping("/registerConsumer")
-    public ResponseData registerConsumer(@RequestParam("service_name") String serviceName,
-                                         @RequestParam("ip") String ip,
-                                         @RequestParam("port") Integer port) {
-        ResponseData responseData;
+    public ResponseData registerConsumer(HttpServletRequest request,
+                                         @RequestParam("service_name") String serviceName) {
+        ResponseData responseData = null;
         Service service = new Service();
         Integer id = counter.getNext();
         service.setServiceId(id);
         service.setServiceName(serviceName);
-        service.setIp(ip);
-        service.setPort(port);
+        service.setIp(request.getRemoteAddr());
+        service.setPort(request.getRemotePort());
         if (consumers.addRecord(service)) {
             responseData = new ResponseData(200, "ok");
             responseData.getData().put("id", id);

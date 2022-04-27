@@ -18,9 +18,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class OnOpenController {
 
     @Autowired
-    private ChatChannelGroup chatChannelGroup;
-
-    @Autowired
     private JwtTokenUtil jwtTokenUtil;
 
     @Autowired
