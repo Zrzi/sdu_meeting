@@ -1,4 +1,4 @@
-package com.meeting.login_and_register.aop;
+package com.meeting.chatroom.aop;
 
 import com.meeting.common.exception.UnAuthorizedException;
 import org.springframework.dao.DuplicateKeyException;

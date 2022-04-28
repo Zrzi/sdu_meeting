@@ -34,11 +34,8 @@ public class StartUpRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        String hostIp = getHostIp();
         MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("serviceName", serviceName);
-        params.add("ip", hostIp);
-        params.add("port", localPort);
+        params.add("service_name", serviceName);
         HttpEntity<MultiValueMap<String, Object>> httpEntity
                 = new HttpEntity<>(params);
         ResponseEntity<ResponseData> responseEntity;
@@ -49,7 +46,6 @@ public class StartUpRunner implements CommandLineRunner {
         } while (responseEntity.getStatusCode() != HttpStatus.OK
                 || (responseData = responseEntity.getBody()) == null
                 || responseData.getCode() != 200);
-        System.out.println("注册成功");
     }
 
     private String getHostIp() {

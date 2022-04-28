@@ -187,34 +187,6 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
             } else {
                 handleReply(id, messageVO.isAgree());
             }
-        } else if (type == MessageType.PULL_FRIENDS.getType()) {
-            // 获取好友信息
-            // pullFriends(this.fromId); 暂时不需要
-            handleDefault(this.channel);
-        } else if (type == MessageType.PULL_REQUESTS.getType()) {
-            // 获取好友请求
-            // pullRequests(this.fromId);
-            handleDefault(this.channel);
-        } else if (type == MessageType.PULL_UNSIGNED_MESSAGE.getType()) {
-            // 获取未签收消息
-            // handlePullUnsignedMessage(this.fromId);
-            handleDefault(this.channel);
-        } else if (type == MessageType.PULL_HISTORY_MESSAGE.getType()) {
-            // 获取历史消息记录
-            if (messageVO.getToId() == null) {
-                // toId未空
-                sendMessageToChannel(this.channel, ResponseData.ID_NOT_FOUND);
-            } else {
-                int start = 0;
-                if (messageVO.getStart() != null && messageVO.getStart() > 0) {
-                    start = messageVO.getStart();
-                }
-                int num = 10;
-                if (messageVO.getNum() != null && messageVO.getNum() > 0) {
-                    num = messageVO.getNum();
-                }
-                handlePullHistoryMessage(fromId, messageVO.getToId(), start, num);
-            }
         } else {
             handleDefault(this.channel);
         }
@@ -310,45 +282,6 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
         } else {
             sendMessageToChannel(this.channel, toSender);
         }
-    }
-
-    /**
-     * 获取好友信息
-     * @param uid 用户id
-     */
-    private void pullFriends(Long uid) {
-        ResponseDataContainer container = friendService.findFriends(uid);
-        sendMessageToChannel(this.channel, container.getToSender());
-    }
-
-    /**
-     * 获取好友请求
-     * @param uid 用户id
-     */
-    private void pullRequests(Long uid) {
-        ResponseDataContainer container = friendService.getRequest(uid);
-        sendMessageToChannel(this.channel, container.getToReceiver());
-    }
-
-    /**
-     * 获取未签收消息
-     * @param uid 用户id
-     */
-    private void handlePullUnsignedMessage(long uid) {
-        ResponseDataContainer container = chatService.selectUnsignedMessage(uid);
-        sendMessageToChannel(this.channel, container.getToReceiver());
-    }
-
-    /**
-     * 获取历史记录，包括未签收的
-     * @param uid1 用户1的id
-     * @param uid2 用户2的id
-     * @param start 起始缩影
-     * @param num 总记录数目
-     */
-    private void handlePullHistoryMessage(long uid1, long uid2, int start, int num) {
-        ResponseDataContainer container = chatService.selectHistoryMessage(uid1, uid2, start, num);
-        sendMessageToChannel(this.channel, container.getToReceiver());
     }
 
     /**

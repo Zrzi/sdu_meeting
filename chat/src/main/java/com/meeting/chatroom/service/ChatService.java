@@ -78,18 +78,18 @@ public class ChatService {
         return container;
     }
 
-    public ResponseDataContainer selectHistoryMessage(long uid1, long uid2, int start, int num) {
-        ResponseDataContainer container = new ResponseDataContainer();
-        ResponseData toReceiver = null;
+    public com.meeting.common.entity.ResponseData selectHistoryMessage(long uid1, long uid2, int start, int num) {
+        com.meeting.common.entity.ResponseData responseData =
+                new com.meeting.common.entity.ResponseData();
         List<Map<String, Object>> collect = messageMapper
                 .findHistoryMessage(uid1, uid2, start, num)
                 .stream()
                 .map(MessageDO::toMap)
                 .collect(Collectors.toList());
-        toReceiver = ResponseData.ok(ResponseType.HISTORY_MESSAGE.getType());
-        toReceiver.getData().put("list", collect);
-        container.setToReceiver(toReceiver);
-        return container;
+        responseData.setCode(200);
+        responseData.setMessage("ok");
+        responseData.getData().put("list", collect);
+        return responseData;
     }
 
 }

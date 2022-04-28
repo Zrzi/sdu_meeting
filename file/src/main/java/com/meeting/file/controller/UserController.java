@@ -36,7 +36,7 @@ public class UserController {
 
     @ResponseBody
     @PostMapping(value = "/updateUserProfile", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseData updateUserProfile(@RequestHeader("Authorization") String token,
+    public ResponseData updateUserProfile(@RequestHeader(value = "Authorization", required = false) String token,
                                           @RequestParam("img") MultipartFile img,
                                           @RequestParam("fileType") String type) {
         ResponseData responseData;

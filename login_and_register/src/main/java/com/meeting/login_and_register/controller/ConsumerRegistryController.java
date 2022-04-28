@@ -28,7 +28,13 @@ public class ConsumerRegistryController {
     private ReadWriteLock lock;
 
     @ResponseBody
-    @GetMapping("/updateInfo")
+    @GetMapping("/heartbeat")
+    public ResponseData heartbeat() {
+        return new ResponseData(200, "ok");
+    }
+
+    @ResponseBody
+    @GetMapping("/service/list")
     public ResponseData updateInfo(String message) {
         lock.writeLock().lock();
         try {

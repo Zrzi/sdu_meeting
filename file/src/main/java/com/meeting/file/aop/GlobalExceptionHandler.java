@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
@@ -20,6 +21,21 @@ import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    /**
+     * 捕获MethodArgumentTypeMismatchException异常，400
+     * @param exception MethodArgumentTypeMismatchException
+     * @return 400响应
+     */
+    @ResponseBody
+    @ExceptionHandler(value = {MethodArgumentTypeMismatchException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, Object> handleException(MethodArgumentTypeMismatchException exception) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("code", 400);
+        map.put("message", exception.getMessage());
+        return map;
+    }
 
     /**
      * 捕获MissingServletRequestParameterException异常，400

@@ -20,27 +20,7 @@ public enum MessageType {
     /**
      * 回复好友请求
      */
-    REPLY(4, "回复好友请求"),
-
-    /**
-     * 获取好友信息
-     */
-    PULL_FRIENDS(5, "获取好友信息"),
-
-    /**
-     * 获取好友请求
-     */
-    PULL_REQUESTS(6, "获取好友请求"),
-
-    /**
-     * 获取未签收消息
-     */
-    PULL_UNSIGNED_MESSAGE(7, "获取未签收消息"),
-
-    /**
-     * 获取历史消息记录
-     */
-    PULL_HISTORY_MESSAGE(8, " 获取历史消息记录");
+    REPLY(4, "回复好友请求");
 
     private final int type;
     private final String text;
