@@ -12,6 +12,9 @@ import io.netty.handler.codec.http.websocketx.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.util.AttributeKey;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static io.netty.handler.codec.http.HttpMethod.GET;
 import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
 import static io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED;
@@ -187,6 +190,40 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
             } else {
                 handleReply(id, messageVO.isAgree());
             }
+        } else if (type == MessageType.PRIVATE_WEBRTC_OFFER.getType()) {
+            // 用户发起会话请求
+            Long sender = messageVO.getSender();
+            Long receiver = messageVO.getReceiver();
+            if (sender == null || receiver == null) {
+                sendMessageToChannel(this.channel, ResponseData.ID_NOT_FOUND);
+            } else {
+                handleWebRtcOffer(messageVO, receiver);
+            }
+        } else if (type == MessageType.PRIVATE_WEBRTC_ANSWER.getType()) {
+            // 响应会话请求
+            Long sender = messageVO.getSender();
+            Long receiver = messageVO.getReceiver();
+            if (sender == null || receiver == null) {
+                sendMessageToChannel(this.channel, ResponseData.ID_NOT_FOUND);
+            } else {
+                handleWebRtcAnswer(messageVO, sender);
+            }
+        } else if (type == MessageType.PRIVATE_WEBRTC_CANDIDATE.getType()) {
+            // ICE候选者
+            Long target = messageVO.getTarget();
+            if (target == null) {
+                sendMessageToChannel(this.channel, ResponseData.ID_NOT_FOUND);
+            } else {
+                handleWebRtcCandidate(messageVO, target);
+            }
+        } else if (type == MessageType.PRIVATE_WEBRTC_DISCONNECT.getType()) {
+            // 挂断电话
+            Long target = messageVO.getTarget();
+            if (target == null) {
+                sendMessageToChannel(this.channel, ResponseData.ID_NOT_FOUND);
+            } else {
+                handleWebRtcDisconnect(messageVO, target);
+            }
         } else {
             handleDefault(this.channel);
         }
@@ -285,6 +322,83 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
     }
 
     /**
+     * 处理用户发起会话请求
+     * @param messageVO messageVO对象，封装消息
+     * @param receiver 接收方的id
+     */
+    private void handleWebRtcOffer(MessageVO messageVO, Long receiver) {
+        // 因为是发起请求，因此服务器应将该消息从 sender 向 receiver 转发
+        Channel receiverChannel = chatChannelGroup.getChannelById(receiver);
+        Map<String, Object> map = new HashMap<>();
+        if (receiverChannel != null) {
+            map.put("type", messageVO.getType());
+            map.put("sdp", messageVO.getSdp());
+            map.put("sender", messageVO.getSender());
+            map.put("receiver", messageVO.getReceiver());
+            sendMessageToChannel(receiverChannel, map);
+        } else {
+            map.put("accept", false);
+            sendMessageToChannel(receiverChannel, map);
+        }
+    }
+
+    /**
+     * 处理响应会话请求
+     * @param messageVO messageVO对象，封装消息
+     * @param sender 发送方用户id
+     */
+    private void handleWebRtcAnswer(MessageVO messageVO, Long sender) {
+        // 因为是响应对方发起的请求，因此服务器应将该消息从 receiver 向 sender 转发。
+        Channel senderChannel = chatChannelGroup.getChannelById(sender);
+        if (senderChannel != null) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("type", messageVO.getType());
+            map.put("accept", messageVO.getAccept());
+            map.put("sdp", messageVO.getSdp());
+            map.put("sender", messageVO.getSender());
+            map.put("receiver", messageVO.getReceiver());
+            sendMessageToChannel(senderChannel, map);
+        }
+    }
+
+    /**
+     * 处理ICE候选者
+     * @param messageVO messageVO对象，封装消息
+     * @param target 目标用户id
+     */
+    private void handleWebRtcCandidate(MessageVO messageVO, Long target) {
+        Channel targetChannel = chatChannelGroup.getChannelById(target);
+        if (targetChannel != null) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("type", messageVO.getType());
+            map.put("candidate", messageVO.getCandidate());
+            map.put("sdpMid", messageVO.getSdpMid());
+            map.put("sdpMLineIndex", messageVO.getSdpMLineIndex());
+            map.put("sender", messageVO.getSender());
+            map.put("receiver", messageVO.getReceiver());
+            map.put("target", messageVO.getTarget());
+            sendMessageToChannel(targetChannel, map);
+        }
+    }
+
+    /**
+     * 处理挂断电话
+     * @param messageVO messageVO对象，封装消息
+     * @param target 目标用户id
+     */
+    private void handleWebRtcDisconnect(MessageVO messageVO, Long target) {
+        Channel targetChannel = chatChannelGroup.getChannelById(target);
+        if (targetChannel != null) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("type", messageVO.getType());
+            map.put("sender", messageVO.getSender());
+            map.put("receiver", messageVO.getReceiver());
+            map.put("target", messageVO.getTarget());
+            sendMessageToChannel(targetChannel, map);
+        }
+    }
+
+    /**
      * 默认处理位置消息类型
      * @param channel
      */
@@ -300,6 +414,12 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
     }
 
     private void sendMessageToChannel(Channel channel, ResponseData responseData) {
+        channel.writeAndFlush(
+                new TextWebSocketFrame(JSON.toJSONString(responseData))
+        );
+    }
+
+    private void sendMessageToChannel(Channel channel, Map<String, Object> responseData) {
         channel.writeAndFlush(
                 new TextWebSocketFrame(JSON.toJSONString(responseData))
         );

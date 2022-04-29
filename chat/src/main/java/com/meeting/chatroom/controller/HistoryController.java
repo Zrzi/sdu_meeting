@@ -24,12 +24,12 @@ public class HistoryController {
                                           @RequestParam("toId") long uid,
                                           @RequestParam(value = "page", required = false) Integer page) {
         Long id = null;
-        if (token == null || jwtTokenUtil.validateToken(token)
+        if (token == null || !jwtTokenUtil.validateToken(token)
                 || (id = jwtTokenUtil.getUserIdFromToken(token)) == null) {
             throw new UnAuthorizedException();
         }
-        if (page == null || page < 0) {
-            page = 0;
+        if (page == null || page < 1) {
+            page = 1;
         }
         int num = 10;
         int start = num * (page - 1);

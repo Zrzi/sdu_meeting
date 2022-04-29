@@ -23,14 +23,25 @@ public class MessageVO {
     private boolean agree;
 
     /**
-     * 获取历史记录，与num一起使用，表示从倒数第start条开始，一直读nun条
+     * 日期
      */
-    private Integer start;
+    private long date;
 
-    /**
-     * 获取历史记录，与start一起使用，表示从倒数第start条开始，一直读nun条
-     */
-    private Integer num;
+    private Long sender;
+
+    private Long receiver;
+
+    private String sdp;
+
+    private Boolean accept;
+
+    private String candidate;
+
+    private String sdpMid;
+
+    private Long sdpMLineIndex;
+
+    private Long target;
 
     /**
      * 消息类型
@@ -41,11 +52,6 @@ public class MessageVO {
      * type = 3，回复请求
      */
     private Integer type;
-
-    /**
-     * 日期
-     */
-    private long date;
 
     public MessageVO() {}
 
@@ -92,22 +98,6 @@ public class MessageVO {
         this.agree = agree;
     }
 
-    public Integer getStart() {
-        return start;
-    }
-
-    public void setStart(Integer start) {
-        this.start = start;
-    }
-
-    public Integer getNum() {
-        return num;
-    }
-
-    public void setNum(Integer num) {
-        this.num = num;
-    }
-
     public Integer getType() {
         return type;
     }
@@ -124,6 +114,70 @@ public class MessageVO {
         this.date = date;
     }
 
+    public Long getSender() {
+        return sender;
+    }
+
+    public void setSender(Long sender) {
+        this.sender = sender;
+    }
+
+    public Long getReceiver() {
+        return receiver;
+    }
+
+    public void setReceiver(Long receiver) {
+        this.receiver = receiver;
+    }
+
+    public String getSdp() {
+        return sdp;
+    }
+
+    public void setSdp(String sdp) {
+        this.sdp = sdp;
+    }
+
+    public Boolean getAccept() {
+        return accept;
+    }
+
+    public void setAccept(Boolean accept) {
+        this.accept = accept;
+    }
+
+    public String getCandidate() {
+        return candidate;
+    }
+
+    public void setCandidate(String candidate) {
+        this.candidate = candidate;
+    }
+
+    public String getSdpMid() {
+        return sdpMid;
+    }
+
+    public void setSdpMid(String sdpMid) {
+        this.sdpMid = sdpMid;
+    }
+
+    public Long getSdpMLineIndex() {
+        return sdpMLineIndex;
+    }
+
+    public void setSdpMLineIndex(Long sdpMLineIndex) {
+        this.sdpMLineIndex = sdpMLineIndex;
+    }
+
+    public Long getTarget() {
+        return target;
+    }
+
+    public void setTarget(Long target) {
+        this.target = target;
+    }
+
     @Override
     public String toString() {
         return "MessageVO{" +
@@ -131,10 +185,16 @@ public class MessageVO {
                 ", toId=" + toId +
                 ", message='" + message + '\'' +
                 ", agree=" + agree +
-                ", start=" + start +
-                ", num=" + num +
-                ", type=" + type +
                 ", date=" + date +
+                ", sender=" + sender +
+                ", receiver=" + receiver +
+                ", sdp='" + sdp + '\'' +
+                ", accept=" + accept +
+                ", candidate='" + candidate + '\'' +
+                ", sdpMid='" + sdpMid + '\'' +
+                ", sdpMLineIndex=" + sdpMLineIndex +
+                ", target=" + target +
+                ", type=" + type +
                 '}';
     }
 

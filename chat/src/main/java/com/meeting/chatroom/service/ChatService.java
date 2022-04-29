@@ -32,8 +32,8 @@ public class ChatService {
                     || userMapper.findUserById(message.getToId()) == null) {
                 toSender = ResponseData.USER_ID_NOT_FOUND;
             } else {
-                // 如果在线，默认用户签收消息，否则认为消息没有签收
-                message.setStatus(isOnline ? 1 : 0);
+                // 改为，统一默认用户没有接受
+                message.setStatus(0);
                 messageMapper.insertMessage(message);
                 toSender = ResponseData.ok(ResponseType.MESSAGE_SENDER_OK.getType());
                 toSender.getData().put("id", message.getId());

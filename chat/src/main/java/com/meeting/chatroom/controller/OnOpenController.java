@@ -33,7 +33,7 @@ public class OnOpenController {
     public ResponseData getFriendsAndMessages(@RequestHeader(value = "Authorization", required = false) String token) {
         ResponseData responseData = null;
         Long uid = null;
-        if (token == null || jwtTokenUtil.validateToken(token)
+        if (token == null || !jwtTokenUtil.validateToken(token)
                 || (uid = jwtTokenUtil.getUserIdFromToken(token)) == null) {
             return new ResponseData(401, "未登录");
         }
