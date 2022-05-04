@@ -49,17 +49,11 @@ public class ChatService {
     }
 
     @Transactional(rollbackFor = RuntimeException.class)
-    public ResponseDataContainer sign(long id, long toId) {
+    public ResponseDataContainer sign(long sender, long toId) {
         ResponseDataContainer container = new ResponseDataContainer();
         ResponseData toReceiver = null;
-        MessageDO message = messageMapper.findMessageById(id);
-        if (message == null || message.getToId() != toId) {
-            toReceiver = ResponseData.MESSAGE_NOT_EXIST;
-        } else {
-            message.setStatus(1);
-            messageMapper.updateMessage(message);
-            toReceiver = ResponseData.ok(ResponseType.SIGN_OK.getType());
-        }
+        messageMapper.sign(sender, toId);
+        toReceiver = ResponseData.ok(ResponseType.SIGN_OK.getType());
         container.setToReceiver(toReceiver);
         return container;
     }

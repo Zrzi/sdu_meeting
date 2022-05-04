@@ -5,6 +5,8 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Mapper
 @Repository
 public interface UserMapper {
@@ -50,6 +52,13 @@ public interface UserMapper {
      * @return 用户对象
      */
     User findUserByCode(@Param("code") String code);
+
+    /**
+     * 根据用户名查询相似用户
+     * @param username 用户名
+     * @return 用户对象列表
+     */
+    List<User> findLikeUserByUsername(@Param("username") String username);
 
     /**
      * 添加用户记录

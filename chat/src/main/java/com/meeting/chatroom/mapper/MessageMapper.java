@@ -79,4 +79,12 @@ public interface MessageMapper {
      */
     Integer updateMessage(@Param("message") MessageDO message);
 
+    /**
+     * 签收消息
+     * @param fromId 消息的发送方
+     * @param toId 消息的接收方
+     * @return 影响记录数
+     */
+    Integer sign(@Param("fromId") Long fromId, @Param("toId") Long toId);
+
 }

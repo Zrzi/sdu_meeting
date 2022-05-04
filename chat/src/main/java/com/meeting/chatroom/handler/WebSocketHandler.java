@@ -171,7 +171,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
             }
         } else if (type == MessageType.SIGNED.getType()) {
             // 消息签收
-            if (messageVO.getId() == null) {
+            if (messageVO.getSender() == null) {
                 sendMessageToChannel(this.channel, ResponseData.ID_NOT_FOUND);
             }
             sign(channel, messageVO);
@@ -264,7 +264,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
      * @param message MessageVO对象 封装消息Id
      */
     private void sign(Channel channel, MessageVO message) {
-        ResponseDataContainer container = chatService.sign(message.getId(), this.fromId);
+        ResponseDataContainer container = chatService.sign(message.getSender(), this.fromId);
         sendMessageToChannel(channel, container.getToReceiver());
     }
 

@@ -24,7 +24,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 路由转发
@@ -53,7 +52,7 @@ public class RoutingFilter implements Filter {
             responseData = new ResponseData(404, "不存在的服务");
             response.setStatus(404);
         } else {
-            String url = buildUrl(request, getIp(service), service.getPath());
+            String url = buildUrl(request, service.getNextIp(), service.getPath());
             try {
                 RequestEntity<byte[]> requestEntity = buildRequestEntity(request, url);
                 ResponseEntity<byte[]> exchange = restTemplate.exchange(requestEntity, byte[].class);
@@ -95,8 +94,7 @@ public class RoutingFilter implements Filter {
         Service service = null;
 
         for (Service temp : services) {
-            // todo 用正则表达式代替
-            if (uri.startsWith(temp.getPath())) {
+            if (temp.support(uri)) {
                 service = temp;
                 break;
             }

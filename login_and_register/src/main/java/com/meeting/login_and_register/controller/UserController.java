@@ -11,6 +11,10 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Controller
 @CrossOrigin(origins = {"*"})
 public class UserController {
@@ -27,7 +31,7 @@ public class UserController {
     /**
      * todo 正则表达式 @mail.sdu.edu.cn @sdu.edu.cn
      */
-    private final static String EMAIL_PATTERN = "@mail.sdu.edu.cn";
+    private final static String[] EMAIL_PATTERN = new String[]{"@mail.sdu.edu.cn", "@sdu.edu.cn"};
 
     @ResponseBody
     @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -58,7 +62,7 @@ public class UserController {
     public ResponseData code(@RequestParam("username") String username,
                              @RequestParam("email") String email) {
         ResponseData responseData;
-        if (isStringEmpty(username) || isStringEmpty(email)) {
+        if (isEmptyString(username) || isEmptyString(email)) {
             responseData = new ResponseData(4001, "输入不能为空");
             return responseData;
         }
@@ -96,7 +100,7 @@ public class UserController {
                                  @RequestParam("email") String email,
                                  @RequestParam("code") String code) {
         ResponseData responseData;
-        if (isStringEmpty(username) || isStringEmpty(email) || isStringEmpty(password)) {
+        if (isEmptyString(username) || isEmptyString(email) || isEmptyString(password)) {
             responseData = new ResponseData(4001, "输入不能为空");
             return responseData;
         }
@@ -125,7 +129,39 @@ public class UserController {
         }
     }
 
-    private boolean isStringEmpty(String string) {
+    /**
+     * 根据用户名查询相似用户，相似查询
+     * @param token jwt token
+     * @param username 用户名
+     * @return ResponseData对象
+     */
+    @ResponseBody
+    @GetMapping(value = "/findUser", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseData findUserByName(@RequestHeader("Authorization") String token,
+                                       @RequestParam("name") String username) {
+
+        if (token == null || !jwtTokenUtil.validateToken(token)) {
+            throw new UnAuthorizedException();
+        }
+        final Long uid = jwtTokenUtil.getUserIdFromToken(token);
+        if (uid == null) {
+            throw new UnAuthorizedException();
+        }
+        if (username == null || username.length() == 0) {
+            return new ResponseData(4001, "输入不能为空");
+        }
+        ResponseData responseData = new ResponseData(200, "ok");
+        List<Map<String, Object>> users =
+                userService.findUserByName(username)
+                        .stream()
+                        .filter((user) -> !user.getId().equals(uid))
+                        .map(User::toMap)
+                        .collect(Collectors.toList());
+        responseData.getData().put("users", users);
+        return responseData;
+    }
+
+    private boolean isEmptyString(String string) {
         return string == null || "".equals(string);
     }
 
@@ -134,7 +170,12 @@ public class UserController {
     }
 
     private boolean checkValidEmail(String email) {
-        return email.endsWith(EMAIL_PATTERN);
+        for (String pattern : EMAIL_PATTERN) {
+            if (email.endsWith(pattern)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

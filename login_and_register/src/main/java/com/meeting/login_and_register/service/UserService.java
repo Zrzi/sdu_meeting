@@ -133,4 +133,8 @@ public class UserService {
         return user.getId();
     }
 
+    public List<User> findUserByName(String username) {
+        return userMapper.findLikeUserByUsername(username);
+    }
+
 }

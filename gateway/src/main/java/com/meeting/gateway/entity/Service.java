@@ -54,7 +54,7 @@ public class Service {
     }
 
     public boolean support(String uri) {
-        return uri.contains(this.path);
+        return uri.startsWith(this.path);
     }
 
     public String getNextIp() {

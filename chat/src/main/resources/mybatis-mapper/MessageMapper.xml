@@ -84,4 +84,12 @@
         WHERE `message_id` = #{message.id}
     </update>
 
+    <update id="sign" parameterType="Long">
+        UPDATE `message`
+        SET `status` = 1
+        WHERE `from_id` = #{fromId}
+          AND `to_id` = #{toId}
+          AND `status` = 0
+    </update>
+
 </mapper>

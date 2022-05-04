@@ -50,6 +50,12 @@
         WHERE `code` = #{code} AND `status` = 0
     </select>
 
+    <select id="findLikeUserByUsername" parameterType="String" resultMap="user">
+        SELECT `user_id`, `username`, `password`, `email`, `profile`, `code`
+        FROM `user`
+        WHERE `username` like concat('%', #{username}, '%') AND `status` = 1
+    </select>
+
     <insert id="insertUser" parameterType="com.meeting.common.entity.User"
             useGeneratedKeys="true" keyProperty="id" keyColumn="user_id">
         INSERT INTO `user` (`username`, `password`, `email`, `profile`, `code`, `status`)
