@@ -57,6 +57,9 @@ public class UpdateInfo {
                             );
                         }
                     }
+
+                    providers.modify();
+
                 }
             } catch (URISyntaxException exception) {
                 System.out.println(exception.getMessage());
@@ -72,8 +75,9 @@ public class UpdateInfo {
 
         public Task(int id, String ip, int port, Map<Integer, Service> copy) throws URISyntaxException {
             this.id = id;
-            this.uri = new URI("http://" + "127.0.0.1" + "/" + port + "/service/list");
-            // this.uri = new URI("http://" + ip + "/" + port + "/service/list");
+            // 本地测试
+            // this.uri = new URI("http://" + "127.0.0.1" + ":" + port + "/service/list");
+            this.uri = new URI("http://" + ip + ":" + port + "/service/list");
             this.copy = copy;
         }
 

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -36,7 +37,7 @@ public class ChatService {
                 message.setStatus(0);
                 messageMapper.insertMessage(message);
                 toSender = ResponseData.ok(ResponseType.MESSAGE_SENDER_OK.getType());
-                toSender.getData().put("id", message.getId());
+                toSender.getData().put("message", message.toMap());
                 if (isOnline) {
                     toReceiver= ResponseData.ok(ResponseType.MESSAGE_RECEIVER_OK.getType());
                     toReceiver.getData().put("message", message.toMap());
@@ -72,14 +73,17 @@ public class ChatService {
         return container;
     }
 
-    public com.meeting.common.entity.ResponseData selectHistoryMessage(long uid1, long uid2, int start, int num) {
+    public com.meeting.common.entity.ResponseData selectHistoryMessage(long uid1, long uid2, long start, int num) {
         com.meeting.common.entity.ResponseData responseData =
                 new com.meeting.common.entity.ResponseData();
-        List<Map<String, Object>> collect = messageMapper
-                .findHistoryMessage(uid1, uid2, start, num)
-                .stream()
-                .map(MessageDO::toMap)
-                .collect(Collectors.toList());
+        List<Map<String, Object>> collect =
+                messageMapper.findHistoryMessage(uid1, uid2)
+                        .stream()
+                        .filter(messageDO -> messageDO.getId() < start)
+                        .sorted(Comparator.comparing(MessageDO::getId).reversed())
+                        .limit(num)
+                        .map(MessageDO::toMap)
+                        .collect(Collectors.toList());
         responseData.setCode(200);
         responseData.setMessage("ok");
         responseData.getData().put("list", collect);

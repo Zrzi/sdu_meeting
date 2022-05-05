@@ -30,7 +30,7 @@ public class Providers {
      */
     private final Map<String, List<Service>> servicesMap = new HashMap<>();
 
-    private boolean modified = false;
+    private volatile boolean modified = false;
 
     /**
      * 当有微服务需要注册时，加入map中
@@ -142,6 +142,15 @@ public class Providers {
             return modified;
         } finally {
             lock.readLock().unlock();
+        }
+    }
+
+    public void modify() {
+        lock.writeLock().lock();
+        try {
+            this.modified = false;
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 

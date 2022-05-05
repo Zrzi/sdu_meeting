@@ -22,17 +22,16 @@ public class HistoryController {
     @GetMapping("/getHistoryMessage")
     public ResponseData getHistoryMessage(@RequestHeader(value = "Authorization", required = false) String token,
                                           @RequestParam("toId") long uid,
-                                          @RequestParam(value = "page", required = false) Integer page) {
+                                          @RequestParam(value = "messageId", required = false) Long start) {
         Long id = null;
         if (token == null || !jwtTokenUtil.validateToken(token)
                 || (id = jwtTokenUtil.getUserIdFromToken(token)) == null) {
             throw new UnAuthorizedException();
         }
-        if (page == null || page < 1) {
-            page = 1;
+        if (start == null || start <= 0) {
+            start = Long.MAX_VALUE;
         }
-        int num = 10;
-        int start = num * (page - 1);
+        int num = 5;
         return chatService.selectHistoryMessage(id, uid, start, num);
     }
 

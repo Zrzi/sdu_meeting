@@ -6,12 +6,15 @@ import com.meeting.chatroom.service.ChatService;
 import com.meeting.chatroom.service.FriendService;
 import com.meeting.chatroom.util.SpringUtil;
 import com.meeting.common.util.JwtTokenUtil;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.websocketx.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.util.AttributeKey;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -73,7 +76,9 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         // 从channelGroup通道组中移除
-        chatChannelGroup.removeChannel(this.fromId, this.channel);
+        if (this.fromId != null) {
+            chatChannelGroup.removeChannel(this.fromId, this.channel);
+        }
     }
 
     /**
@@ -96,44 +101,62 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
             return;
         }
 
+        Long fromId;
+        Channel channel;
+
         String token = req.headers().get("Sec-WebSocket-Protocol");
         if (token == null || !jwtTokenUtil.validateToken(token)
-                || (this.fromId = jwtTokenUtil.getUserIdFromToken(token)) == null) {
+                || (fromId = jwtTokenUtil.getUserIdFromToken(token)) == null) {
             sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, UNAUTHORIZED, ctx.alloc().buffer(0)));
             return;
         }
 
-        this.channel = ctx.channel();
-        this.chatChannelGroup.addChannel(this.fromId, this.channel);
+        channel = ctx.channel();
+        boolean success = this.chatChannelGroup.addChannel(fromId, channel);
 
-        final WebSocketServerHandshakerFactory wsFactory =
-                new WebSocketServerHandshakerFactory(getWebSocketLocation(ctx.pipeline(), req, "/ws"),
-                        "WebSocket", true, 65536 * 10);
-        final WebSocketServerHandshaker handshaker = wsFactory.newHandshaker(req);
-        final ChannelPromise localHandshakePromise = handshakePromise;
-        if (handshaker == null) {
-            WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
-        } else {
-            // setHandshaker(ctx.channel(), handshaker);
-            HttpHeaders headers = new DefaultHttpHeaders();
-            headers.set("Access-Control-Allow-Methods", "*");
-            headers.set("Access-Control-Allow-Credentials", "true");
-            headers.set("Access-Control-Allow-Origin", "*");
-            headers.set("Access-Control-Allow-Headers", "*");
-            headers.set("Access-Control-Expose-Headers", "*");
-            headers.set("Sec-WebSocket-Protocol", token);
-            final ChannelFuture handshakeFuture = handshaker.handshake(ctx.channel(), req, headers, ctx.newPromise());
-            handshakeFuture.addListener(new ChannelFutureListener() {
-                @Override
-                public void operationComplete(ChannelFuture future) {
-                    if (!future.isSuccess()) {
-                        localHandshakePromise.tryFailure(future.cause());
-                        ctx.fireExceptionCaught(future.cause());
-                    } else {
-                        localHandshakePromise.trySuccess();
+        if (success) {
+            // 添加成功
+            this.fromId = fromId;
+            this.channel = channel;
+
+            final WebSocketServerHandshakerFactory wsFactory =
+                    new WebSocketServerHandshakerFactory(getWebSocketLocation(ctx.pipeline(), req, "/ws"),
+                            "WebSocket", true, 65536 * 10);
+            final WebSocketServerHandshaker handshaker = wsFactory.newHandshaker(req);
+            final ChannelPromise localHandshakePromise = handshakePromise;
+            if (handshaker == null) {
+                WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
+            } else {
+                // setHandshaker(ctx.channel(), handshaker);
+                HttpHeaders headers = new DefaultHttpHeaders();
+                headers.set("Access-Control-Allow-Methods", "*");
+                headers.set("Access-Control-Allow-Credentials", "true");
+                headers.set("Access-Control-Allow-Origin", "*");
+                headers.set("Access-Control-Allow-Headers", "*");
+                headers.set("Access-Control-Expose-Headers", "*");
+                headers.set("Sec-WebSocket-Protocol", token);
+                final ChannelFuture handshakeFuture = handshaker.handshake(ctx.channel(), req, headers, ctx.newPromise());
+                handshakeFuture.addListener(new ChannelFutureListener() {
+                    @Override
+                    public void operationComplete(ChannelFuture future) {
+                        if (!future.isSuccess()) {
+                            localHandshakePromise.tryFailure(future.cause());
+                            ctx.fireExceptionCaught(future.cause());
+                        } else {
+                            localHandshakePromise.trySuccess();
+                        }
                     }
-                }
-            });
+                });
+            }
+        } else {
+            // 已经连接过
+            com.meeting.common.entity.ResponseData responseData =
+                    new com.meeting.common.entity.ResponseData(400, "重复连接");
+            ByteBuf buf = Unpooled.wrappedBuffer(JSON.toJSONString(responseData).getBytes(StandardCharsets.UTF_8));
+            FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, FORBIDDEN, buf);
+            response.headers().set("Content-Type","application/json;charset=UTF-8");
+            response.headers().set("Content-Length",response.content().readableBytes());
+            sendHttpResponse(ctx, req, response);
         }
     }
 

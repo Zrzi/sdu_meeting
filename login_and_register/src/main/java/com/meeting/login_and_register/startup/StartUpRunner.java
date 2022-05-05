@@ -7,18 +7,19 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Enumeration;
 
-// @Controller
-public class StartUpRunner implements CommandLineRunner {
+@Component
+public class StartUpRunner {
 
     @Value("${server.port}")
     private int localPort;
@@ -26,18 +27,16 @@ public class StartUpRunner implements CommandLineRunner {
     @Value("${registry.url}")
     private String url;
 
-    @Value("${registry.log}")
+    @Value("${registry.serviceName}")
     private String serviceName;
 
     @Autowired
     private RestTemplate restTemplate;
 
-    @Override
-    public void run(String... args) throws Exception {
-        String hostIp = getHostIp();
+    @PostConstruct
+    public void run() throws Exception {
         MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("service_name", serviceName);
-        params.add("ip", hostIp);
+        params.add("name", serviceName);
         params.add("port", localPort);
         HttpEntity<MultiValueMap<String, Object>> httpEntity
                 = new HttpEntity<>(params);

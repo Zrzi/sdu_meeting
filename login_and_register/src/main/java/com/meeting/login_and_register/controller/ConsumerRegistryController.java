@@ -6,9 +6,7 @@ import com.meeting.common.entity.ResponseData;
 import com.meeting.common.entity.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
@@ -34,11 +32,12 @@ public class ConsumerRegistryController {
     }
 
     @ResponseBody
-    @GetMapping("/service/list")
-    public ResponseData updateInfo(String message) {
+    @PostMapping("/service/list")
+    public ResponseData updateInfo(@RequestParam("serviceList") String message) {
         lock.writeLock().lock();
         try {
             services = JSON.parseObject(message, new TypeReference<Map<Integer, Service>>(){});
+            System.out.println(services);
         } finally {
             lock.writeLock().unlock();
         }

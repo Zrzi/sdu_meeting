@@ -30,14 +30,15 @@ public class RegistryController {
     @ResponseBody
     @PostMapping("/registerProvider")
     public ResponseData registerProvider(HttpServletRequest request,
-                                         @RequestParam("service_name") String serviceName) {
+                                         @RequestParam("name") String serviceName,
+                                         @RequestParam("port") int port) {
         ResponseData responseData = null;
         Service service = new Service();
         Integer id = counter.getNext();
         service.setServiceId(id);
         service.setServiceName(serviceName);
         service.setIp(request.getRemoteAddr());
-        service.setPort(request.getRemotePort());
+        service.setPort(port);
         if (providers.addRecord(service)) {
             responseData = new ResponseData(200, "ok");
             responseData.getData().put("id", id);
@@ -50,14 +51,15 @@ public class RegistryController {
     @ResponseBody
     @PostMapping("/registerConsumer")
     public ResponseData registerConsumer(HttpServletRequest request,
-                                         @RequestParam("service_name") String serviceName) {
+                                         @RequestParam("name") String serviceName,
+                                         @RequestParam("port") int port) {
         ResponseData responseData = null;
         Service service = new Service();
         Integer id = counter.getNext();
         service.setServiceId(id);
         service.setServiceName(serviceName);
         service.setIp(request.getRemoteAddr());
-        service.setPort(request.getRemotePort());
+        service.setPort(port);
         if (consumers.addRecord(service)) {
             responseData = new ResponseData(200, "ok");
             responseData.getData().put("id", id);

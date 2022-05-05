@@ -12,13 +12,14 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Enumeration;
 
 @Component
-public class StartUpRunner implements CommandLineRunner {
+public class StartUpRunner {
 
     @Value("${server.port}")
     private int localPort;
@@ -32,10 +33,11 @@ public class StartUpRunner implements CommandLineRunner {
     @Autowired
     private RestTemplate restTemplate;
 
-    @Override
-    public void run(String... args) throws Exception {
+    @PostConstruct
+    public void run() throws Exception {
         MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("service_name", serviceName);
+        params.add("name", serviceName);
+        params.add("port", localPort);
         HttpEntity<MultiValueMap<String, Object>> httpEntity
                 = new HttpEntity<>(params);
         ResponseEntity<ResponseData> responseEntity;

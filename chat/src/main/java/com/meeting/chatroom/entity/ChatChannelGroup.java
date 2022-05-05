@@ -16,11 +16,15 @@ public class ChatChannelGroup {
 
     private final Map<Channel, Long> CHANNEL_ID_REF = new HashMap<>();
 
-    public void addChannel(Long id, Channel channel) {
+    public boolean addChannel(Long id, Channel channel) {
         LOCK.writeLock().lock();
         try {
+            if (ID_CHANNEL_REF.containsKey(id)) {
+                return false;
+            }
             ID_CHANNEL_REF.put(id, channel);
             CHANNEL_ID_REF.put(channel, id);
+            return true;
         } finally {
             LOCK.writeLock().unlock();
         }

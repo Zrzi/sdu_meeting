@@ -55,15 +55,23 @@ public interface MessageMapper {
      */
     List<MessageDO> findRequestByToId(@Param("id") Long id);
 
+//    /**
+//     * 查询历史纪录
+//     * @param uid1 用户1的id
+//     * @param uid2 用户2的id
+//     * @param start 起始缩影
+//     * @param num 数量
+//     * @return MessageDO列表
+//     */
+//    List<MessageDO> findHistoryMessage(@Param("uid1") Long uid1, @Param("uid2") Long uid2, @Param("start") int start, @Param("num") int num);
+
     /**
-     * 查询历史纪录
+     * 查询历史记录
      * @param uid1 用户1的id
      * @param uid2 用户2的id
-     * @param start 起始缩影
-     * @param num 数量
      * @return MessageDO列表
      */
-    List<MessageDO> findHistoryMessage(@Param("uid1") Long uid1, @Param("uid2") Long uid2, @Param("start") int start, @Param("num") int num);
+    List<MessageDO> findHistoryMessage(@Param("uid1") Long uid1, @Param("uid2") Long uid2);
 
     /**
      * 添加消息记录

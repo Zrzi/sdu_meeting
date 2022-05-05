@@ -20,10 +20,10 @@ import java.util.concurrent.*;
 public class Heartbeat {
 
     @Autowired
-    private Providers providers;
+    private volatile Providers providers;
 
     @Autowired
-    private Consumers consumers;
+    private volatile Consumers consumers;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -44,7 +44,7 @@ public class Heartbeat {
                     Service service = providers.get(key);
                     if (service != null) {
                         pool.submit(
-                                new Task(service.getServiceId(),
+                                new ProviderTask(service.getServiceId(),
                                         service.getIp(), service.getPort())
                         );
                     }
@@ -57,7 +57,7 @@ public class Heartbeat {
                     Service service = consumers.get(key);
                     if (service != null) {
                         pool.submit(
-                                new Task(service.getServiceId(),
+                                new ConsumerTask(service.getServiceId(),
                                         service.getIp(), service.getPort())
                         );
                     }
@@ -68,16 +68,16 @@ public class Heartbeat {
         }, 3, 3, TimeUnit.SECONDS);
     }
 
-    class Task implements Runnable {
+    class ProviderTask implements Runnable {
 
         private final int id;
         private final URI uri;
 
-        public Task(int id, String ip, int port) throws URISyntaxException {
+        public ProviderTask(int id, String ip, int port) throws URISyntaxException {
             this.id = id;
             // 本地测试使用
-            this.uri = new URI("http://" + "127.0.0.1" + ":" + port + "/heartbeat");
-            // this.uri = new URI("http://" + ip + ":" + port + "/heartbeat");
+            // this.uri = new URI("http://" + "127.0.0.1" + ":" + port + "/heartbeat");
+            this.uri = new URI("http://" + ip + ":" + port + "/heartbeat");
         }
 
         @Override
@@ -92,6 +92,35 @@ public class Heartbeat {
                 }
             } catch (ResourceAccessException | HttpClientErrorException exception) {
                 providers.removeService(id);
+            }
+        }
+
+    }
+
+    class ConsumerTask implements Runnable {
+
+        private final int id;
+        private final URI uri;
+
+        public ConsumerTask(int id, String ip, int port) throws URISyntaxException {
+            this.id = id;
+            // 本地测试使用
+            // this.uri = new URI("http://" + "127.0.0.1" + ":" + port + "/heartbeat");
+            this.uri = new URI("http://" + ip + ":" + port + "/heartbeat");
+        }
+
+        @Override
+        public void run() {
+            RequestEntity<String> requestEntity
+                    = new RequestEntity<>(null, null, HttpMethod.GET, this.uri);
+            try {
+                ResponseEntity<ResponseData> exchange
+                        = restTemplate.exchange(requestEntity, ResponseData.class);
+                if (exchange.getStatusCode() != HttpStatus.OK) {
+                    consumers.removeService(id);
+                }
+            } catch (ResourceAccessException | HttpClientErrorException exception) {
+                consumers.removeService(id);
             }
         }
 
