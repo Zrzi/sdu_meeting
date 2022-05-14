@@ -46,8 +46,8 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
     /**
      * 活跃的通道  也可以当作用户连接上客户端进行使用
-     * @param ctx
-     * @throws Exception
+     * @param ctx ChannelHandlerContext对象 channel上下文
+     * @throws Exception 异常
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -56,9 +56,9 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
     /**
      * 出现异常
-     * @param ctx
-     * @param cause
-     * @throws Exception
+     * @param ctx ChannelHandlerContext对象 channel上下文
+     * @param cause 异常信息
+     * @throws Exception 异常
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
@@ -70,8 +70,8 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
     /**
      * 不活跃的通道  就说明用户失去连接
-     * @param ctx
-     * @throws Exception
+     * @param ctx ChannelHandlerContext对象 channel上下文
+     * @throws Exception 异常
      */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
@@ -83,8 +83,8 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
     /**
      * 服务器接受客户端的数据信息
-     * @param ctx
-     * @param data
+     * @param ctx ChannelHandlerContext对象 channel上下文
+     * @param data 数据
      */
     @Override
     public void channelRead0(ChannelHandlerContext ctx, Object data) throws Exception {
@@ -174,7 +174,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
         if (messageVO.getType() == null) {
             sendMessageToChannel(this.channel, ResponseData.ILLEGAL_MESSAGE_FORMAT);
-        };
+        }
 
         int type = messageVO.getType();
 
@@ -220,7 +220,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
             if (sender == null || receiver == null) {
                 sendMessageToChannel(this.channel, ResponseData.ID_NOT_FOUND);
             } else {
-                handleWebRtcOffer(messageVO, receiver);
+                handleWebRtcOffer(messageVO, receiver, sender);
             }
         } else if (type == MessageType.PRIVATE_WEBRTC_ANSWER.getType()) {
             // 响应会话请求
@@ -349,11 +349,13 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
      * @param messageVO messageVO对象，封装消息
      * @param receiver 接收方的id
      */
-    private void handleWebRtcOffer(MessageVO messageVO, Long receiver) {
+    private void handleWebRtcOffer(MessageVO messageVO, Long receiver, Long sender) {
         // 因为是发起请求，因此服务器应将该消息从 sender 向 receiver 转发
         Channel receiverChannel = chatChannelGroup.getChannelById(receiver);
+        Channel senderChannel = chatChannelGroup.getChannelById(sender);
         Map<String, Object> map = new HashMap<>();
         if (receiverChannel != null) {
+            map.put("senderName", messageVO.getSenderName());
             map.put("type", messageVO.getType());
             map.put("sdp", messageVO.getSdp());
             map.put("sender", messageVO.getSender());
@@ -361,7 +363,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
             sendMessageToChannel(receiverChannel, map);
         } else {
             map.put("accept", false);
-            sendMessageToChannel(receiverChannel, map);
+            sendMessageToChannel(senderChannel, map);
         }
     }
 
@@ -423,7 +425,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
     /**
      * 默认处理位置消息类型
-     * @param channel
+     * @param channel Channel对象 消息通道
      */
     private void handleDefault(Channel channel) {
         sendMessageToChannel(channel, ResponseData.TYPE_NOT_ALLOWED);

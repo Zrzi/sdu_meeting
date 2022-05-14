@@ -27,6 +27,8 @@ public class MessageVO {
      */
     private long date;
 
+    private String senderName;
+
     private Long sender;
 
     private Long receiver;
@@ -114,6 +116,14 @@ public class MessageVO {
         this.date = date;
     }
 
+    public String getSenderName() {
+        return senderName;
+    }
+
+    public void setSenderName(String senderName) {
+        this.senderName = senderName;
+    }
+
     public Long getSender() {
         return sender;
     }
@@ -186,6 +196,7 @@ public class MessageVO {
                 ", message='" + message + '\'' +
                 ", agree=" + agree +
                 ", date=" + date +
+                ", senderName='" + senderName + '\'' +
                 ", sender=" + sender +
                 ", receiver=" + receiver +
                 ", sdp='" + sdp + '\'' +
@@ -197,5 +208,4 @@ public class MessageVO {
                 ", type=" + type +
                 '}';
     }
-
 }
