@@ -12,11 +12,14 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.websocketx.*;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.AttributeKey;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.netty.handler.codec.http.HttpMethod.GET;
 import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
@@ -30,6 +33,8 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
     private Channel channel = null;
 
     private Long fromId = null;
+
+    private AtomicBoolean isFirst = new AtomicBoolean(true);
 
     private final JwtTokenUtil jwtTokenUtil = SpringUtil.getBean(JwtTokenUtil.class);
 
@@ -81,6 +86,27 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
         }
     }
 
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        if (!(evt instanceof IdleStateEvent)) {
+            super.userEventTriggered(ctx, evt);
+        } else {
+            IdleStateEvent event = (IdleStateEvent) evt;
+            if (event.state() == IdleState.READER_IDLE) {
+                // 读写空闲，断开连接
+                final Channel channel = ctx.channel();
+                if (isFirst.getAndSet(false)) {
+                    // 第一次读写超时，发送心跳包
+                    sendMessageToChannel(channel, ResponseData.HEARTBEAT);
+                } else {
+                    // 第二次读写超时，断开连接
+                    ChannelFuture close = ctx.close();
+                    close.addListener(future -> chatChannelGroup.removeChannel(channel));
+                }
+            }
+        }
+    }
+
     /**
      * 服务器接受客户端的数据信息
      * @param ctx ChannelHandlerContext对象 channel上下文
@@ -91,6 +117,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
         if (data instanceof FullHttpRequest) {
             handleHttpRequest(ctx, (FullHttpRequest) data);
         } else if (data instanceof TextWebSocketFrame) {
+            isFirst.set(true);
             handleWebSocketFrame((TextWebSocketFrame) data);
         }
     }
@@ -226,8 +253,11 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
             // 响应会话请求
             Long sender = messageVO.getSender();
             Long receiver = messageVO.getReceiver();
+            Integer accept = messageVO.getAccept();
             if (sender == null || receiver == null) {
                 sendMessageToChannel(this.channel, ResponseData.ID_NOT_FOUND);
+            } else if (accept == null) {
+                sendMessageToChannel(this.channel, ResponseData.ILLEGAL_MESSAGE_FORMAT);
             } else {
                 handleWebRtcAnswer(messageVO, sender);
             }
@@ -247,6 +277,8 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
             } else {
                 handleWebRtcDisconnect(messageVO, target);
             }
+        } else if (type == MessageType.HEARTBEAT.getType()) {
+            // 什么都不做
         } else {
             handleDefault(this.channel);
         }

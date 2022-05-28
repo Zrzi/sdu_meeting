@@ -27,6 +27,8 @@ public class ResponseData {
 
     public final static ResponseData BAD_REQUEST = new ResponseData(false, "BAD_REQUEST");
 
+    public final static ResponseData HEARTBEAT = new ResponseData(true, "HEARTBEAT");
+
     private boolean success;
     private String type;
     private final Map<String, Object> data = new HashMap<>();

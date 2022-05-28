@@ -18,7 +18,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Enumeration;
 
-@Component
+// @Component
 public class StartUpRunner {
 
     @Value("${server.port}")

@@ -40,7 +40,12 @@ public enum MessageType {
     /**
      * 挂断电话
      */
-    PRIVATE_WEBRTC_DISCONNECT(8, "private_webrtc_disconnect");
+    PRIVATE_WEBRTC_DISCONNECT(8, "private_webrtc_disconnect"),
+
+    /**
+     * 心跳
+     */
+    HEARTBEAT(9, "heartbeat");
 
     private final int type;
     private final String text;

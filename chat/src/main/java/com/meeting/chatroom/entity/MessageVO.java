@@ -35,7 +35,7 @@ public class MessageVO {
 
     private String sdp;
 
-    private Boolean accept;
+    private Integer accept;
 
     private String candidate;
 
@@ -148,11 +148,11 @@ public class MessageVO {
         this.sdp = sdp;
     }
 
-    public Boolean getAccept() {
+    public Integer getAccept() {
         return accept;
     }
 
-    public void setAccept(Boolean accept) {
+    public void setAccept(Integer accept) {
         this.accept = accept;
     }
 

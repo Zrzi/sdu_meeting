@@ -1,9 +1,6 @@
 package com.meeting.chatroom.server;
 
-import com.meeting.chatroom.entity.ChatChannelGroup;
-import com.meeting.chatroom.handler.HeartBeatHandler;
 import com.meeting.chatroom.handler.WebSocketHandler;
-import com.meeting.common.util.JwtTokenUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -14,10 +11,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -42,8 +37,8 @@ public class NettyServer {
                         @Override
                         protected void initChannel(SocketChannel channel) throws Exception {
                             channel.pipeline()
-                                    // 超过60秒没有读写，触发读写超时
-                                    .addLast("idle-state", new IdleStateHandler(0, 0, 0, TimeUnit.SECONDS))
+                                    // 超过30秒没有写，触发写超时
+                                    // .addLast("idle-state", new IdleStateHandler(30, 0, 0, TimeUnit.SECONDS))
                                     // HttpServerCodec：将请求和应答消息解码为HTTP消息
                                     .addLast("http-codec",new HttpServerCodec())
                                     // HttpObjectAggregator：将HTTP消息的多个部分合成一条完整的HTTP消息
@@ -51,8 +46,6 @@ public class NettyServer {
                                     // ChunkedWriteHandler：向客户端发送HTML5文件
                                     .addLast("http-chunked",new ChunkedWriteHandler())
                                     // .addLast("websocket", new WebSocketServerProtocolHandler("/ws", "WebSocket", true, 65536 * 10))
-                                    // 处理IdleStateEvent
-                                     .addLast("heart-beat", new HeartBeatHandler())
                                     // 配置通道处理来进行业务处理
                                     .addLast("handler", new WebSocketHandler());
                         }
