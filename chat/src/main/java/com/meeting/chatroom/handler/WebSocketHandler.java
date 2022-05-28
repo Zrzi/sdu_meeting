@@ -387,14 +387,16 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
         Channel senderChannel = chatChannelGroup.getChannelById(sender);
         Map<String, Object> map = new HashMap<>();
         if (receiverChannel != null) {
+            boolean security = messageVO.getSecurity() != null && messageVO.getSecurity();
             map.put("senderName", messageVO.getSenderName());
             map.put("type", messageVO.getType());
             map.put("sdp", messageVO.getSdp());
             map.put("sender", messageVO.getSender());
             map.put("receiver", messageVO.getReceiver());
+            map.put("security", security);
             sendMessageToChannel(receiverChannel, map);
         } else {
-            map.put("accept", false);
+            map.put("accept", -2);
             sendMessageToChannel(senderChannel, map);
         }
     }

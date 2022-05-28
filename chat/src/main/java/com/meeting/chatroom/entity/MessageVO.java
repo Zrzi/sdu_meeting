@@ -45,6 +45,8 @@ public class MessageVO {
 
     private Long target;
 
+    private Boolean security;
+
     /**
      * 消息类型
      * 从客户端发来的消息类型，参照MessageType
@@ -188,6 +190,14 @@ public class MessageVO {
         this.target = target;
     }
 
+    public Boolean getSecurity() {
+        return security;
+    }
+
+    public void setSecurity(Boolean security) {
+        this.security = security;
+    }
+
     @Override
     public String toString() {
         return "MessageVO{" +
@@ -205,7 +215,9 @@ public class MessageVO {
                 ", sdpMid='" + sdpMid + '\'' +
                 ", sdpMLineIndex=" + sdpMLineIndex +
                 ", target=" + target +
+                ", security=" + security +
                 ", type=" + type +
                 '}';
     }
+
 }
