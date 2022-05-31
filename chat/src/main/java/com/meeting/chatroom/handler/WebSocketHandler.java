@@ -207,6 +207,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
         // 根据type处理不同业务
         if (type == MessageType.CHAT.getType()) {
+            // type == 1
             // 聊天类型的消息
             MessageDO messageDO = new MessageDO(messageVO, this.fromId);
             // 发送消息
@@ -221,11 +222,13 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
             }
         } else if (type == MessageType.SIGNED.getType()) {
             // 消息签收
+            // type == 2
             if (messageVO.getSender() == null) {
                 sendMessageToChannel(this.channel, ResponseData.ID_NOT_FOUND);
             }
             sign(channel, messageVO);
         } else if (type == MessageType.REQUEST.getType()) {
+            // type == 3
             // 好友添加请求
             if (messageVO.getToId() == null) {
                 sendMessageToChannel(this.channel, ResponseData.ID_NOT_FOUND);
@@ -233,6 +236,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
                 handleRequest(fromId, messageVO.getToId());
             }
         } else if (type == MessageType.REPLY.getType()) {
+            // type == 4
             // 回复好友请求
             Long id = messageVO.getId();
             if (id == null) {
@@ -241,6 +245,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
                 handleReply(id, messageVO.isAgree());
             }
         } else if (type == MessageType.PRIVATE_WEBRTC_OFFER.getType()) {
+            // type == 5
             // 用户发起会话请求
             Long sender = messageVO.getSender();
             Long receiver = messageVO.getReceiver();
@@ -250,18 +255,17 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
                 handleWebRtcOffer(messageVO, receiver, sender);
             }
         } else if (type == MessageType.PRIVATE_WEBRTC_ANSWER.getType()) {
+            // type == 6
             // 响应会话请求
             Long sender = messageVO.getSender();
             Long receiver = messageVO.getReceiver();
-            Integer accept = messageVO.getAccept();
             if (sender == null || receiver == null) {
                 sendMessageToChannel(this.channel, ResponseData.ID_NOT_FOUND);
-            } else if (accept == null) {
-                sendMessageToChannel(this.channel, ResponseData.ILLEGAL_MESSAGE_FORMAT);
             } else {
                 handleWebRtcAnswer(messageVO, sender);
             }
         } else if (type == MessageType.PRIVATE_WEBRTC_CANDIDATE.getType()) {
+            // type == 7
             // ICE候选者
             Long target = messageVO.getTarget();
             if (target == null) {
@@ -270,6 +274,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
                 handleWebRtcCandidate(messageVO, target);
             }
         } else if (type == MessageType.PRIVATE_WEBRTC_DISCONNECT.getType()) {
+            // type == 8
             // 挂断电话
             Long target = messageVO.getTarget();
             if (target == null) {
@@ -277,9 +282,32 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
             } else {
                 handleWebRtcDisconnect(messageVO, target);
             }
+        } else if (type == MessageType.REQUEST_WEBRTC.getType()) {
+            // type == 9
+            Long sender = messageVO.getSender();
+            Long receiver = messageVO.getReceiver();
+            if (sender == null || receiver == null) {
+                sendMessageToChannel(this.channel, ResponseData.ID_NOT_FOUND);
+            } else {
+                handleRequestWebRtc(messageVO, receiver, sender);
+            }
+        } else if (type == MessageType.ANSWER_WEBRTC.getType()) {
+            // type == 10
+            Long sender = messageVO.getSender();
+            Long receiver = messageVO.getReceiver();
+            Integer accept = messageVO.getAccept();
+            if (sender == null || receiver == null) {
+                sendMessageToChannel(this.channel, ResponseData.ID_NOT_FOUND);
+            } else if (accept == null) {
+                sendMessageToChannel(this.channel, ResponseData.ILLEGAL_MESSAGE_FORMAT);
+            } else {
+                handleAnswerWebTrc(messageVO, sender);
+            }
         } else if (type == MessageType.HEARTBEAT.getType()) {
+            // type == 11
             // 什么都不做
         } else {
+            // 以上都不匹配
             handleDefault(this.channel);
         }
     }
@@ -387,12 +415,10 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
         Channel senderChannel = chatChannelGroup.getChannelById(sender);
         Map<String, Object> map = new HashMap<>(8);
         if (receiverChannel != null) {
-            map.put("senderName", messageVO.getSenderName());
             map.put("type", messageVO.getType());
             map.put("sdp", messageVO.getSdp());
             map.put("sender", messageVO.getSender());
             map.put("receiver", messageVO.getReceiver());
-            map.put("security", messageVO.getSecurity());
             sendMessageToChannel(receiverChannel, map);
         } else {
             map.put("accept", -2);
@@ -411,11 +437,9 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
         if (senderChannel != null) {
             Map<String, Object> map = new HashMap<>();
             map.put("type", messageVO.getType());
-            map.put("accept", messageVO.getAccept());
             map.put("sdp", messageVO.getSdp());
             map.put("sender", messageVO.getSender());
             map.put("receiver", messageVO.getReceiver());
-            map.put("security", messageVO.getSecurity());
             sendMessageToChannel(senderChannel, map);
         }
     }
@@ -454,6 +478,49 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
             map.put("receiver", messageVO.getReceiver());
             map.put("target", messageVO.getTarget());
             sendMessageToChannel(targetChannel, map);
+        }
+    }
+
+    /**
+     * 处理用户发起会话请求
+     * @param messageVO messageVO对象，封装消息
+     * @param receiver 接收方的id
+     * @param sender 发送方的id
+     */
+    private void handleRequestWebRtc(MessageVO messageVO, Long receiver, Long sender) {
+        // 因为是发起请求，因此服务器应将该消息从 sender 向 receiver 转发
+        Channel receiverChannel = chatChannelGroup.getChannelById(receiver);
+        Channel senderChannel = chatChannelGroup.getChannelById(sender);
+        Map<String, Object> map = new HashMap<>(8);
+        if (receiverChannel != null) {
+            map.put("type", messageVO.getType());
+            map.put("security", messageVO.getSecurity());
+            map.put("sender", messageVO.getSender());
+            map.put("senderName", messageVO.getSenderName());
+            map.put("receiver", messageVO.getReceiver());
+            sendMessageToChannel(receiverChannel, map);
+        } else {
+            map.put("accept", -2);
+            sendMessageToChannel(senderChannel, map);
+        }
+    }
+
+    /**
+     * 处理响应会话请求
+     * @param messageVO messageVO对象，封装消息
+     * @param sender 发送方用户id
+     */
+    private void handleAnswerWebTrc(MessageVO messageVO, Long sender) {
+        // 因为是响应对方发起的请求，因此服务器应将该消息从 receiver 向 sender 转发。
+        Channel senderChannel = chatChannelGroup.getChannelById(sender);
+        if (senderChannel != null) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("type", messageVO.getType());
+            map.put("security", messageVO.getSecurity());
+            map.put("sender", messageVO.getSender());
+            map.put("receiver", messageVO.getReceiver());
+            map.put("accept", messageVO.getAccept());
+            sendMessageToChannel(senderChannel, map);
         }
     }
 

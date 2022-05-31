@@ -43,9 +43,21 @@ public enum MessageType {
     PRIVATE_WEBRTC_DISCONNECT(8, "private_webrtc_disconnect"),
 
     /**
+     * 用户发起会话请求（sender）
+     * 发送视频通话请求
+     */
+    REQUEST_WEBRTC(9, "REQUEST_WEBRTC"),
+
+    /**
+     * 用户发起绘画请求（receiver）
+     * 应答视频通话请求
+     */
+    ANSWER_WEBRTC(10, "ANSWER_WEBRTC"),
+
+    /**
      * 心跳
      */
-    HEARTBEAT(9, "heartbeat");
+    HEARTBEAT(11, "heartbeat");
 
     private final int type;
     private final String text;
