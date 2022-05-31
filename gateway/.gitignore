@@ -3,6 +3,8 @@ mvnw
 mvnw.cmd
 .mvn
 
+/src/main/resources/ssl.cer
+/src/main/resources/ssl.pfx
 HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
