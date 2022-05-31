@@ -385,15 +385,14 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
         // 因为是发起请求，因此服务器应将该消息从 sender 向 receiver 转发
         Channel receiverChannel = chatChannelGroup.getChannelById(receiver);
         Channel senderChannel = chatChannelGroup.getChannelById(sender);
-        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>(8);
         if (receiverChannel != null) {
-            boolean security = messageVO.getSecurity() != null && messageVO.getSecurity();
             map.put("senderName", messageVO.getSenderName());
             map.put("type", messageVO.getType());
             map.put("sdp", messageVO.getSdp());
             map.put("sender", messageVO.getSender());
             map.put("receiver", messageVO.getReceiver());
-            map.put("security", security);
+            map.put("security", messageVO.getSecurity());
             sendMessageToChannel(receiverChannel, map);
         } else {
             map.put("accept", -2);
@@ -416,6 +415,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
             map.put("sdp", messageVO.getSdp());
             map.put("sender", messageVO.getSender());
             map.put("receiver", messageVO.getReceiver());
+            map.put("security", messageVO.getSecurity());
             sendMessageToChannel(senderChannel, map);
         }
     }

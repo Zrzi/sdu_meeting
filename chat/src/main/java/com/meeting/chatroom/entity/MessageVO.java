@@ -45,7 +45,7 @@ public class MessageVO {
 
     private Long target;
 
-    private Boolean security;
+    private String security;
 
     /**
      * 消息类型
@@ -190,11 +190,11 @@ public class MessageVO {
         this.target = target;
     }
 
-    public Boolean getSecurity() {
+    public String getSecurity() {
         return security;
     }
 
-    public void setSecurity(Boolean security) {
+    public void setSecurity(String security) {
         this.security = security;
     }
 
