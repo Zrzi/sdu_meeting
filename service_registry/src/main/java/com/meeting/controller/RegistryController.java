@@ -6,13 +6,12 @@ import com.meeting.common.entity.Service;
 import com.meeting.record.Consumers;
 import com.meeting.record.Providers;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 
 @Controller
 @CrossOrigin(origins = {"*"})
@@ -28,45 +27,61 @@ public class RegistryController {
     private Consumers consumers;
 
     @ResponseBody
-    @PostMapping("/registerProvider")
+    @PostMapping(value = "/registerProvider", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseData registerProvider(HttpServletRequest request,
-                                         @RequestParam("name") String serviceName,
-                                         @RequestParam("port") int port) {
-        ResponseData responseData = null;
-        Service service = new Service();
-        Integer id = counter.getNext();
-        service.setServiceId(id);
-        service.setServiceName(serviceName);
-        service.setIp(request.getRemoteAddr());
-        service.setPort(port);
-        if (providers.addRecord(service)) {
-            responseData = new ResponseData(200, "ok");
-            responseData.getData().put("id", id);
-        } else {
-            responseData = new ResponseData(400, "error");
+                                         @RequestBody HashMap<String, Object> map) {
+        if (!map.containsKey("name") || !map.containsKey("port")) {
+            return new ResponseData(400, "参数错误");
         }
-        return responseData;
+        try {
+            String serviceName = (String) map.get("name");
+            int port = (Integer) map.get("port");
+            ResponseData responseData = null;
+            Service service = new Service();
+            Integer id = counter.getNext();
+            service.setServiceId(id);
+            service.setServiceName(serviceName);
+            service.setIp(request.getRemoteAddr());
+            service.setPort(port);
+            if (providers.addRecord(service)) {
+                responseData = new ResponseData(200, "ok");
+                responseData.getData().put("id", id);
+            } else {
+                responseData = new ResponseData(400, "error");
+            }
+            return responseData;
+        } catch (Exception exception) {
+            return new ResponseData(400, "参数错误");
+        }
     }
 
     @ResponseBody
     @PostMapping("/registerConsumer")
     public ResponseData registerConsumer(HttpServletRequest request,
-                                         @RequestParam("name") String serviceName,
-                                         @RequestParam("port") int port) {
-        ResponseData responseData = null;
-        Service service = new Service();
-        Integer id = counter.getNext();
-        service.setServiceId(id);
-        service.setServiceName(serviceName);
-        service.setIp(request.getRemoteAddr());
-        service.setPort(port);
-        if (consumers.addRecord(service)) {
-            responseData = new ResponseData(200, "ok");
-            responseData.getData().put("id", id);
-        } else {
-            responseData = new ResponseData(400, "error");
+                                         @RequestBody HashMap<String, Object> map) {
+        if (!map.containsKey("name") || !map.containsKey("port")) {
+            return new ResponseData(400, "参数错误");
         }
-        return responseData;
+        try {
+            String serviceName = (String) map.get("name");
+            int port = (Integer) map.get("port");
+            ResponseData responseData = null;
+            Service service = new Service();
+            Integer id = counter.getNext();
+            service.setServiceId(id);
+            service.setServiceName(serviceName);
+            service.setIp(request.getRemoteAddr());
+            service.setPort(port);
+            if (consumers.addRecord(service)) {
+                responseData = new ResponseData(200, "ok");
+                responseData.getData().put("id", id);
+            } else {
+                responseData = new ResponseData(400, "error");
+            }
+            return responseData;
+        } catch (Exception exception) {
+            return new ResponseData(400, "参数错误");
+        }
     }
 
 }
