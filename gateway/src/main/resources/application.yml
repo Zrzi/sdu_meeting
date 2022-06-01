@@ -21,3 +21,7 @@ router:
       path: /chat
       ip:
         - http://127.0.0.1:8005
+    - serviceName: meeting
+      path: /meeting
+      ip:
+        - http://121.40.95.78:4000
