@@ -81,8 +81,8 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         // 从channelGroup通道组中移除
-        if (this.fromId != null) {
-            chatChannelGroup.removeChannel(this.fromId, this.channel);
+        if (this.channel != null) {
+            chatChannelGroup.removeChannel(this.channel);
         }
     }
 
@@ -139,13 +139,16 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
         }
 
         channel = ctx.channel();
-        boolean success = this.chatChannelGroup.addChannel(fromId, channel);
+        if (this.fromId == null) {
+            this.fromId = fromId;
+        }
+        if (this.channel == null) {
+            this.channel = channel;
+        }
 
+        boolean success = this.chatChannelGroup.addChannel(fromId, channel);
         if (success) {
             // 添加成功
-            this.fromId = fromId;
-            this.channel = channel;
-
             final WebSocketServerHandshakerFactory wsFactory =
                     new WebSocketServerHandshakerFactory(getWebSocketLocation(ctx.pipeline(), req, "/ws"),
                             "WebSocket", true, 65536 * 10);
@@ -177,13 +180,22 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
             }
         } else {
             // 已经连接过
-            com.meeting.common.entity.ResponseData responseData =
-                    new com.meeting.common.entity.ResponseData(400, "重复连接");
-            ByteBuf buf = Unpooled.wrappedBuffer(JSON.toJSONString(responseData).getBytes(StandardCharsets.UTF_8));
-            FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, FORBIDDEN, buf);
-            response.headers().set("Content-Type","application/json;charset=UTF-8");
-            response.headers().set("Content-Length",response.content().readableBytes());
-            sendHttpResponse(ctx, req, response);
+            final Channel temp = this.chatChannelGroup.getChannelById(fromId);
+            sendMessageToChannel(temp, ResponseData.NEW_CONNECTION)
+                    .addListener(f -> {
+                        if (f.isDone()) {
+                            // 由前端接收到消息后主动断开连接
+                            this.chatChannelGroup.removeChannel(temp);
+                            handleHttpRequest(ctx, req);
+                        }
+                    });
+//            com.meeting.common.entity.ResponseData responseData =
+//                    new com.meeting.common.entity.ResponseData(400, "重复连接");
+//            ByteBuf buf = Unpooled.wrappedBuffer(JSON.toJSONString(responseData).getBytes(StandardCharsets.UTF_8));
+//            FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, FORBIDDEN, buf);
+//            response.headers().set("Content-Type","application/json;charset=UTF-8");
+//            response.headers().set("Content-Length",response.content().readableBytes());
+//            sendHttpResponse(ctx, req, response);
         }
     }
 
@@ -539,14 +551,14 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
         }
     }
 
-    private void sendMessageToChannel(Channel channel, ResponseData responseData) {
-        channel.writeAndFlush(
+    private ChannelFuture sendMessageToChannel(Channel channel, ResponseData responseData) {
+        return channel.writeAndFlush(
                 new TextWebSocketFrame(JSON.toJSONString(responseData))
         );
     }
 
-    private void sendMessageToChannel(Channel channel, Map<String, Object> responseData) {
-        channel.writeAndFlush(
+    private ChannelFuture sendMessageToChannel(Channel channel, Map<String, Object> responseData) {
+        return channel.writeAndFlush(
                 new TextWebSocketFrame(JSON.toJSONString(responseData))
         );
     }

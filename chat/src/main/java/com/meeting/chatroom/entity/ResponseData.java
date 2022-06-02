@@ -29,6 +29,8 @@ public class ResponseData {
 
     public final static ResponseData HEARTBEAT = new ResponseData(true, "HEARTBEAT");
 
+    public final static ResponseData NEW_CONNECTION = new ResponseData(false, "NEW_CONNECTION");
+
     private boolean success;
     private String type;
     private final Map<String, Object> data = new HashMap<>();
