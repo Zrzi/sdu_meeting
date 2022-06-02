@@ -4,6 +4,8 @@ import com.meeting.gateway.balance.LoadBalancer;
 import com.meeting.gateway.balance.impl.DefaultLoadBalancer;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Service {
 
@@ -12,6 +14,11 @@ public class Service {
     private String[] ip;
     private final AtomicCounter counter = new AtomicCounter();
     private final LoadBalancer balancer = new DefaultLoadBalancer();
+    /**
+     * 流量控制
+     */
+    private Integer controller = 10000;
+    private final ReentrantLock lock = new ReentrantLock(false);
 
     public Service() {}
 
@@ -60,6 +67,37 @@ public class Service {
     public String getNextIp() {
         int index = balancer.getNextService(this.ip.length);
         return this.ip[index];
+    }
+
+    /**
+     * 判断是否还有容量
+     * 如果controller == 0，返回false
+     * 否则，controller自建，返回true
+     * @return 是否需要降级
+     */
+    public boolean degraded() {
+        lock.lock();
+        try {
+            if (controller == 0) {
+                return false;
+            }
+            --controller;
+            return true;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * 访问服务后，将controller自增
+     */
+    public void upgrade() {
+        lock.lock();
+        try {
+            ++controller;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override

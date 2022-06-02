@@ -52,32 +52,37 @@ public class RoutingFilter implements Filter {
             responseData = new ResponseData(404, "不存在的服务");
             response.setStatus(404);
         } else {
-            String url = buildUrl(request, service.getNextIp(), service.getPath());
-            try {
-                RequestEntity<byte[]> requestEntity = buildRequestEntity(request, url);
-                ResponseEntity<byte[]> exchange = restTemplate.exchange(requestEntity, byte[].class);
-                byte[] bytes = exchange.getBody();
-                if (bytes != null) {
-                    request.setAttribute("bytes", bytes);
-                    response.setContentType(exchange.getHeaders().getContentType() != null
-                            ? exchange.getHeaders().getContentType().toString()
-                            : MediaType.APPLICATION_JSON_VALUE);
-                    return;
-                } else {
-                    responseData = new ResponseData(404, "资源不存在");
+            if (service.degraded()) {
+                responseData = new ResponseData(400, "服务繁忙，稍后再试");
+                response.setStatus(400);
+            } else {
+                String url = buildUrl(request, service.getNextIp(), service.getPath());
+                try {
+                    RequestEntity<byte[]> requestEntity = buildRequestEntity(request, url);
+                    ResponseEntity<byte[]> exchange = restTemplate.exchange(requestEntity, byte[].class);
+                    byte[] bytes = exchange.getBody();
+                    if (bytes != null) {
+                        request.setAttribute("bytes", bytes);
+                        response.setContentType(exchange.getHeaders().getContentType() != null
+                                ? exchange.getHeaders().getContentType().toString()
+                                : MediaType.APPLICATION_JSON_VALUE);
+                        return;
+                    } else {
+                        responseData = new ResponseData(404, "资源不存在");
+                    }
+                } catch (URISyntaxException exception) {
+                    responseData = new ResponseData(500, "服务器故障，uri创建失败");
+                    response.setStatus(500);
+                } catch (ResourceAccessException exception) {
+                    responseData = new ResponseData(500, "响应超时");
+                    response.setStatus(500);
+                } catch (HttpClientErrorException exception) {
+                    responseData = new ResponseData(exception.getRawStatusCode(), exception.getMessage());
+                    response.setStatus(exception.getRawStatusCode());
                 }
-            } catch (URISyntaxException exception) {
-                responseData = new ResponseData(500, "服务器故障，uri创建失败");
-                response.setStatus(500);
-            } catch (ResourceAccessException exception) {
-                responseData = new ResponseData(500, "响应超时");
-                response.setStatus(500);
-            } catch (HttpClientErrorException exception) {
-                responseData = new ResponseData(exception.getRawStatusCode(), exception.getMessage());
-                response.setStatus(exception.getRawStatusCode());
+                service.upgrade();
             }
         }
-
         byte[] bytes = JSON.toJSONBytes(responseData);
         request.setAttribute("bytes", bytes);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
