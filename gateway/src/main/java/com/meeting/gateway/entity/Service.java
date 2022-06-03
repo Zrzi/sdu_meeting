@@ -17,8 +17,7 @@ public class Service {
     /**
      * 流量控制
      */
-    private Integer controller = 10000;
-    private final ReentrantLock lock = new ReentrantLock(false);
+    private final AtomicInteger controller = new AtomicInteger(3000);
 
     public Service() {}
 
@@ -70,34 +69,20 @@ public class Service {
     }
 
     /**
-     * 判断是否还有容量
-     * 如果controller == 0，返回false
-     * 否则，controller自建，返回true
-     * @return 是否需要降级
+     * 返回容量
+     * 如果controller <= 0，没有容量，服务降级
+     * 否则，还有容量，继续执行
+     * @return 剩余容量
      */
-    public boolean degraded() {
-        lock.lock();
-        try {
-            if (controller == 0) {
-                return false;
-            }
-            --controller;
-            return true;
-        } finally {
-            lock.unlock();
-        }
+    public int degrade() {
+        return controller.decrementAndGet();
     }
 
     /**
-     * 访问服务后，将controller自增
+     * controller自增
      */
     public void upgrade() {
-        lock.lock();
-        try {
-            ++controller;
-        } finally {
-            lock.unlock();
-        }
+        controller.incrementAndGet();
     }
 
     @Override

@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.meeting.common.entity.ResponseData;
 import com.meeting.gateway.entity.Router;
 import com.meeting.gateway.entity.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.*;
@@ -39,6 +41,8 @@ public class RoutingFilter implements Filter {
     @Autowired
     private RestTemplate restTemplate;
 
+    private final static Logger logger = LoggerFactory.getLogger(AuthorizationFilter.class);
+
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
@@ -49,10 +53,12 @@ public class RoutingFilter implements Filter {
         String uri = request.getRequestURI();
         Service service = getService(router.getServices(), uri);
         if (service == null) {
+            logger.error("访问{}，服务不存在", uri);
             responseData = new ResponseData(404, "不存在的服务");
             response.setStatus(404);
         } else {
-            if (service.degraded()) {
+            if (service.degrade() <= 0) {
+                logger.info("访问{}，服务降级", uri);
                 responseData = new ResponseData(400, "服务繁忙，稍后再试");
                 response.setStatus(400);
             } else {
@@ -68,20 +74,24 @@ public class RoutingFilter implements Filter {
                                 : MediaType.APPLICATION_JSON_VALUE);
                         return;
                     } else {
+                        logger.error("访问{}，资源不存在", url);
                         responseData = new ResponseData(404, "资源不存在");
                     }
                 } catch (URISyntaxException exception) {
+                    logger.error("访问{}，服务器故障，uri创建失败", url);
                     responseData = new ResponseData(500, "服务器故障，uri创建失败");
                     response.setStatus(500);
                 } catch (ResourceAccessException exception) {
+                    logger.error("访问{}，响应超时", url);
                     responseData = new ResponseData(500, "响应超时");
                     response.setStatus(500);
                 } catch (HttpClientErrorException exception) {
+                    logger.error("访问{}，出现异常{}", url, exception.getMessage());
                     responseData = new ResponseData(exception.getRawStatusCode(), exception.getMessage());
                     response.setStatus(exception.getRawStatusCode());
                 }
-                service.upgrade();
             }
+            service.upgrade();
         }
         byte[] bytes = JSON.toJSONBytes(responseData);
         request.setAttribute("bytes", bytes);

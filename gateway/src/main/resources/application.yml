@@ -7,6 +7,9 @@ server:
     key-store-type: PKCS12
   max-http-header-size: 16384
 
+logging:
+  config: classpath:log4j2.xml
+
 router:
   services:
     - serviceName: login_and_register
@@ -25,3 +28,8 @@ router:
       path: /meeting
       ip:
         - http://121.40.95.78:4000
+    - serviceName: test
+      path: /test
+      ip:
+        - http://127.0.0.1:8900
+        - http://127.0.0.1:8901

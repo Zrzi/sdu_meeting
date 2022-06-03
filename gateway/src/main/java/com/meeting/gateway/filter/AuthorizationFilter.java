@@ -3,6 +3,8 @@ package com.meeting.gateway.filter;
 import com.alibaba.fastjson.JSON;
 import com.meeting.common.entity.ResponseData;
 import com.meeting.common.util.JwtTokenUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;

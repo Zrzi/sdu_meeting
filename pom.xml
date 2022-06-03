@@ -22,6 +22,8 @@
         <module>login_and_register</module>
         <module>service_registry</module>
         <module>log</module>
+        <module>test-8900</module>
+        <module>test-8901</module>
     </modules>
 
     <packaging>pom</packaging>
