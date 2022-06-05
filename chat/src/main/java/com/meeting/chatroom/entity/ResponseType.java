@@ -55,7 +55,22 @@ public enum ResponseType {
     /**
      * 请求未回复的好友请求
      */
-    REQUESTS_TO_BE_REPLIED("REQUESTS_TO_BE_REPLIED");
+    REQUESTS_TO_BE_REPLIED("REQUESTS_TO_BE_REPLIED"),
+
+    /**
+     * 删除好友，发送方
+     */
+    REMOVE_FRIEND_SENDER_OK("REMOVE_FRIEND_SENDER_OK"),
+
+    /**
+     * 删除好友，接收方
+     */
+    REMOVE_FRIEND_RECEIVER_OK("REMOVE_FRIEND_RECEIVER_OK"),
+
+    /**
+     * 响应好友删除消息
+     */
+    REPLY_REMOVE_FRIEND("REPLY_REMOVE_FRIEND");
 
     private String type;
 

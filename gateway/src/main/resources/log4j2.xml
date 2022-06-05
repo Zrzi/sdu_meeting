@@ -3,9 +3,9 @@
 
     <properties>
         <!-- 服务器 -->
-<!--        <property name="LOG_HOME">/root/logs</property>-->
+        <property name="LOG_HOME">/root/logs</property>
         <!-- 本地测试 -->
-        <property name="LOG_HOME">D:\IDEA\sdumeeting\logs</property>
+<!--        <property name="LOG_HOME">D:\IDEA\sdumeeting\logs</property>-->
         <property name="FILE_NAME_INFO">std</property>
         <property name="FILE_NAME_ERROR">error</property>
     </properties>

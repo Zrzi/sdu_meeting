@@ -225,4 +225,71 @@ public class FriendService {
         return container;
     }
 
+    public ResponseDataContainer removeFriend(Long fromId, Long toId) {
+        ResponseDataContainer container = new ResponseDataContainer();
+        ResponseData toSender = null;
+        ResponseData toReceiver = null;
+
+        if (userMapper.findUserById(fromId) == null
+                || userMapper.findUserById(toId) == null) {
+            // 一方用户不存在
+            toSender = ResponseData.USER_ID_NOT_FOUND;
+            container.setToSender(toSender);
+            return container;
+        }
+
+        Friend f1 = friendMapper.findFriendByUserId(fromId, toId);
+        Friend f2 = friendMapper.findFriendByUserId(toId, fromId);
+
+        if (f1 != null) {
+            friendMapper.removeFriend(f1);
+            toSender = ResponseData.ok(ResponseType.REMOVE_FRIEND_SENDER_OK.getType());
+            toSender.getData().put("uid", toId);
+        } else {
+            toSender = ResponseData.NO_SUCH_FRIEND;
+        }
+        if (f2 != null) {
+            friendMapper.removeFriend(f2);
+            toReceiver = ResponseData.ok(ResponseType.REMOVE_FRIEND_RECEIVER_OK.getType());
+            toReceiver.getData().put("uid", fromId);
+        }
+
+        // 添加好友删除消息
+        MessageDO message = new MessageDO();
+        message.setFromId(fromId);
+        message.setToId(toId);
+        message.setDate(System.currentTimeMillis());
+        message.setStatus(4);
+        messageMapper.insertMessage(message);
+
+        if (toSender != null) {
+            toSender.getData().put("id", message.getId());
+        }
+        if (toReceiver != null) {
+            toReceiver.getData().put("id", message.getId());
+        }
+
+        container.setToSender(toSender);
+        container.setToReceiver(toReceiver);
+
+        return container;
+    }
+
+    public ResponseData replyRemoveFriend(Long id, Long fromId) {
+        ResponseData responseData;
+
+        // 检验消息是否存在，以及消息是否是发送给自己的
+        MessageDO message = messageMapper.findMessageById(id);
+        if (message == null || message.getToId() != fromId) {
+            responseData = ResponseData.MESSAGE_NOT_EXIST;
+            return responseData;
+        }
+
+        // 更改消息状态
+        message.setStatus(5);
+        messageMapper.updateMessage(message);
+
+        return ResponseData.ok(ResponseType.REPLY_REMOVE_FRIEND.getType());
+    }
+
 }

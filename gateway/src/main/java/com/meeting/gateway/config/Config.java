@@ -31,7 +31,7 @@ public class Config {
 
     /**
      * http重定向到https
-     * @return
+     * @return ServletWebServerFactory对象
      */
     @Bean
     public ServletWebServerFactory servletContainer() {

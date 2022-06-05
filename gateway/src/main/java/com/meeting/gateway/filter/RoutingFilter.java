@@ -61,6 +61,7 @@ public class RoutingFilter implements Filter {
                 logger.info("访问{}，服务降级", uri);
                 responseData = new ResponseData(400, "服务繁忙，稍后再试");
                 response.setStatus(400);
+                service.upgrade();
             } else {
                 String url = buildUrl(request, service.getNextIp(), service.getPath());
                 try {
@@ -89,9 +90,10 @@ public class RoutingFilter implements Filter {
                     logger.error("访问{}，出现异常{}", url, exception.getMessage());
                     responseData = new ResponseData(exception.getRawStatusCode(), exception.getMessage());
                     response.setStatus(exception.getRawStatusCode());
+                } finally {
+                    service.upgrade();
                 }
             }
-            service.upgrade();
         }
         byte[] bytes = JSON.toJSONBytes(responseData);
         request.setAttribute("bytes", bytes);

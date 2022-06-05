@@ -161,6 +161,56 @@ public class UserController {
         return responseData;
     }
 
+    @ResponseBody
+    @GetMapping(value = "/passwordCode", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseData code(@RequestParam("email") String email) {
+        ResponseData responseData;
+        try {
+            userService.code(email);
+            responseData = new ResponseData();
+            responseData.setCode(200);
+            responseData.setMessage("ok");
+            return responseData;
+        } catch (UserExistException exception) {
+            responseData = new ResponseData(400, exception.getMsg());
+            return responseData;
+        } catch (RuntimeException exception) {
+            responseData = new ResponseData(500, exception.getMessage());
+            return responseData;
+        }
+    }
+
+    @ResponseBody
+    @PostMapping(value = "/updatePassword", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseData updatePassword(@RequestParam("email") String email,
+                                       @RequestParam("password") String password,
+                                       @RequestParam("code") String code) {
+        ResponseData responseData;
+        if (isEmptyString(password)) {
+            responseData = new ResponseData(4001, "输入不能为空");
+            return responseData;
+        }
+        // 要求password长度小于等于32位
+        if (password.length() > 32) {
+            responseData = new ResponseData(4002, "长度不符合要求");
+            return responseData;
+        }
+        try {
+            userService.updatePassword(email, password, code);
+            responseData = new ResponseData(200, "ok");
+            return responseData;
+        } catch (UserExistException exception) {
+            responseData = new ResponseData(400, exception.getMsg());
+            return responseData;
+        } catch (PasswordException exception) {
+            responseData = new ResponseData(400, exception.getMsg());
+            return responseData;
+        } catch (CodeNotFoundException exception) {
+            responseData = new ResponseData(400, exception.getMsg());
+            return responseData;
+        }
+    }
+
     private boolean isEmptyString(String string) {
         return string == null || "".equals(string);
     }

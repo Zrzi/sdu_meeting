@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.meeting.login_and_register.mapper.UserCodeMapper">
+
+    <resultMap id="code" type="com.meeting.common.entity.Code">
+        <id property="id" column="user_id" />
+        <id property="type" column="type" />
+        <result property="code" column="code" />
+        <result property="date" column="date" />
+        <result property="status" column="status" />
+    </resultMap>
+
+    <select id="findCodeByUserIdAndType" resultMap="code">
+        SELECT `user_id`, `type`, `code`, `date`, `status`
+        FROM `code`
+        WHERE `user_id` = #{user_id}
+          AND `type` = #{type}
+    </select>
+
+    <insert id="insertCode" parameterType="com.meeting.common.entity.Code">
+        INSERT INTO `code` (`user_id`, `type`, `code`, `date`, `status`)
+        VALUES (#{code.id}, #{code.type}, #{code.code}, #{code.date}, #{code.status})
+    </insert>
+
+    <update id="updateCode" parameterType="com.meeting.common.entity.Code">
+        UPDATE `code`
+        set `code` = #{code.code},
+            `status` = #{code.status},
+            `date` = #{code.date}
+        WHERE `user_id` = #{code.id}
+          AND `type` = #{code.type}
+    </update>
+
+</mapper>

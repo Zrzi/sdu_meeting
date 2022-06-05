@@ -35,6 +35,8 @@ public class MessageDO {
      * status=1，消息已签收
      * status=2，好友请求，且没有被回复
      * status=3，好友请求，已经被回复
+     * status=4, 好友删除，且没有被回复
+     * status=5，好友删除，已经被回复
      */
     private int status;
 

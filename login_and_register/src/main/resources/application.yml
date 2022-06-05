@@ -4,11 +4,11 @@ server:
 
 spring:
   datasource:
-    # url: jdbc:mysql://127.0.0.1:3306/meeting?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowMultiQueries=true&serverTimezone=GMT%2B8&
-    url: jdbc:mysql://121.40.95.78:3306/meeting?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowMultiQueries=true&allowPublicKeyRetrieval=true&serverTimezone=GMT%2B8&
+    url: jdbc:mysql://127.0.0.1:3306/meeting?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowMultiQueries=true&allowPublicKeyRetrieval=true&serverTimezone=GMT%2B8&
+    # url: jdbc:mysql://121.40.95.78:3306/meeting?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowMultiQueries=true&allowPublicKeyRetrieval=true&serverTimezone=GMT%2B8&
     username: root
-    # password: 123456
-    password: 1234
+    password: 123456
+    # password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
   mvc:
     # 出现异常时，直接抛出异常
@@ -23,7 +23,7 @@ spring:
     # 发送邮件的邮箱地址
     username: chqunjin@163.com
     # 客户端授权码
-    password: YOEUCEALJZKZNIRD
+    password: JVQFBRXOAWPEANKT
     # 465或者994
     properties.mail.smtp.port: 465
     # 下面配置有兴趣可以自行查阅

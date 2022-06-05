@@ -18,6 +18,15 @@ CREATE TABLE `role`(
     PRIMARY KEY (`role_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE `code`(
+    `user_id` BIGINT,
+    `type` INTEGER,
+    `code` VARCHAR(256),
+    `date` VARCHAR(256),
+    `status` INTEGER,
+    PRIMARY KEY (`user_id`, `type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 INSERT INTO `role` (`authority`)
 VALUES ('user');
 

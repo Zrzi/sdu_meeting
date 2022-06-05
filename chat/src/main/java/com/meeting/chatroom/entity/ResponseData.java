@@ -31,6 +31,8 @@ public class ResponseData {
 
     public final static ResponseData NEW_CONNECTION = new ResponseData(false, "NEW_CONNECTION");
 
+    public final static ResponseData NO_SUCH_FRIEND = new ResponseData(false, "NO_SUCH_FRIEND");
+
     private boolean success;
     private String type;
     private final Map<String, Object> data = new HashMap<>();

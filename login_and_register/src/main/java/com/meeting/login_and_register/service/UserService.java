@@ -1,5 +1,6 @@
 package com.meeting.login_and_register.service;
 
+import com.meeting.common.entity.Code;
 import com.meeting.common.entity.Role;
 import com.meeting.common.entity.User;
 import com.meeting.common.entity.UserRole;
@@ -8,6 +9,7 @@ import com.meeting.common.util.DigitUtil;
 import com.meeting.common.util.Md5Util;
 import com.meeting.common.util.UUIDUtil;
 import com.meeting.login_and_register.mapper.RoleMapper;
+import com.meeting.login_and_register.mapper.UserCodeMapper;
 import com.meeting.login_and_register.mapper.UserMapper;
 import com.meeting.login_and_register.mapper.UserRoleMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +18,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.mail.MessagingException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserService {
@@ -31,6 +40,9 @@ public class UserService {
 
     @Autowired
     private UserRoleMapper userRoleMapper;
+
+    @Autowired
+    private UserCodeMapper userCodeMapper;
 
     @Autowired
     private MailService mailService;
@@ -131,6 +143,70 @@ public class UserService {
         user.setCode("");
         userMapper.updateUser(user);
         return user.getId();
+    }
+
+    /**
+     * 发送用户修改密码的验证码
+     * @param email 用户邮箱
+     */
+    @Transactional(rollbackFor = RuntimeException.class)
+    public void code(String email) {
+        User user = userMapper.findActiveUserByEmail(email);
+        if (user == null) {
+            throw new UserExistException("用户不存在");
+        }
+        Long uid = user.getId();
+        Code userCode = userCodeMapper.findCodeByUserIdAndType(uid, 1);
+        String code = Integer.toString(digitUtil.code(6));
+        String date = LocalDateTime.now().plusMinutes(10)
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        if (userCode == null) {
+            // 记录为空，创建code对象
+            userCode = new Code();
+            userCode.setId(uid);
+            userCode.setType(1);
+            userCode.setCode(code);
+            userCode.setDate(date);
+            userCode.setStatus(0);
+            userCodeMapper.insertCode(userCode);
+        } else {
+            // 记录存在，覆盖记录
+            userCode.setCode(code);
+            userCode.setDate(date);
+            userCode.setStatus(0);
+            userCodeMapper.updateCode(userCode);
+        }
+        String subject = "山大云会议";
+        String context = "<p>修改密码的验证码为: "+code+", 验证码有效期为10分钟。</p>";
+        try {
+            mailService.sendHtmlMail(email, subject, context);
+        } catch (MessagingException e) {
+            throw new RuntimeException("发送邮件时出现异常");
+        }
+    }
+
+    @Transactional(rollbackFor = RuntimeException.class)
+    public void updatePassword(String email, String password, String code) {
+        User user = userMapper.findActiveUserByEmail(email);
+        if (user == null || user.getStatus() != 1) {
+            throw new UserExistException("用户不存在");
+        }
+        Long uid = user.getId();
+        Code userCode = userCodeMapper.findCodeByUserIdAndType(uid, 1);
+        if (userCode == null || userCode.getStatus() != 0) {
+            throw new CodeNotFoundException("验证码不存在");
+        }
+        if (!userCode.getCode().equals(code)) {
+            throw new CodeNotFoundException("验证码错误");
+        }
+        if (LocalDateTime.parse(userCode.getDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).isBefore(LocalDateTime.now())) {
+            throw new CodeNotFoundException("验证码过期");
+        }
+        // 验证码不能重复使用
+        userCode.setStatus(1);
+        userCodeMapper.updateCode(userCode);
+        user.setPassword(md5Util.encrypt(password));
+        userMapper.updateUser(user);
     }
 
     public List<User> findUserByName(String username) {

@@ -1,3 +1,4 @@
+com\meeting\common\entity\Code.class
 com\meeting\common\entity\Message.class
 com\meeting\common\entity\ResponseData.class
 com\meeting\common\exception\CodeNotFoundException.class
@@ -13,6 +14,7 @@ com\meeting\common\exception\BaseException.class
 com\meeting\common\util\Md5Util.class
 com\meeting\common\exception\EmailNotFoundException.class
 com\meeting\common\entity\Role.class
+com\meeting\common\exception\PasswordException.class
 com\meeting\common\exception\FileFormatException.class
 com\meeting\common\util\UUIDUtil.class
 com\meeting\common\exception\PathNotFoundException.class

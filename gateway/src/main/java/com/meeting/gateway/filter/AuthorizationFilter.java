@@ -36,7 +36,9 @@ public class AuthorizationFilter implements Filter {
         if (!uri.contains("/login_and_register/login")
                 && !uri.contains("/login_and_register/register")
                 && !uri.contains("/login_and_register/code")
-                && !uri.contains("/file/pic")) {
+                && !uri.contains("/file/pic")
+                && !uri.contains("/login_and_register/passwordCode")
+                && !uri.contains("/login_and_register/updatePassword")) {
             // 检验token
             String authorization = request.getHeader("Authorization");
             if (authorization == null || !jwtTokenUtil.validateToken(authorization)) {

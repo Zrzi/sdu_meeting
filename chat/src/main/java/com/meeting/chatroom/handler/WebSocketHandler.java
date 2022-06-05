@@ -318,6 +318,23 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
         } else if (type == MessageType.HEARTBEAT.getType()) {
             // type == 11
             // 什么都不做
+        } else if (type == MessageType.REMOVE_FRIEND.getType()) {
+            // type == 12
+            // 删除好友
+            if (messageVO.getToId() == null) {
+                sendMessageToChannel(this.channel, ResponseData.ID_NOT_FOUND);
+            } else {
+                handleRemoveFriend(fromId, messageVO.getToId());
+            }
+        } else if (type == MessageType.REPLY_REMOVE_FRIEND.getType()) {
+            // type == 13
+            // 响应好友删除
+            Long id = messageVO.getId();
+            if (id == null) {
+                sendMessageToChannel(this.channel, ResponseData.ID_NOT_FOUND);
+            } else {
+                handleReplyRemoveFriend(id);
+            }
         } else {
             // 以上都不匹配
             handleDefault(this.channel);
@@ -512,7 +529,10 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
             map.put("receiver", messageVO.getReceiver());
             sendMessageToChannel(receiverChannel, map);
         } else {
+            map.put("sender", sender);
+            map.put("receiver", receiver);
             map.put("accept", -2);
+            map.put("type", 10);
             sendMessageToChannel(senderChannel, map);
         }
     }
@@ -534,6 +554,36 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
             map.put("accept", messageVO.getAccept());
             sendMessageToChannel(senderChannel, map);
         }
+    }
+
+    /**
+     * 处理删除好友
+     * @param fromId 发送方id
+     * @param toId 接收方id
+     */
+    private void handleRemoveFriend(Long fromId, Long toId) {
+        ResponseDataContainer container = friendService.removeFriend(fromId, toId);
+        ResponseData toSender = container.getToSender();
+        ResponseData toReceiver = container.getToReceiver();
+        if (toSender.isSuccess()) {
+            Channel receiver = chatChannelGroup.getChannelById(toId);
+            if (receiver != null) {
+                // 对方在线
+                sendMessageToChannel(receiver, toReceiver);
+            }
+            sendMessageToChannel(this.channel, toSender);
+        } else {
+            sendMessageToChannel(this.channel, toSender);
+        }
+    }
+
+    /**
+     * 处理删除好友响应
+     * @param id 消息id
+     */
+    private void handleReplyRemoveFriend(Long id) {
+        ResponseData responseData = friendService.replyRemoveFriend(id, this.fromId);
+        sendMessageToChannel(this.channel, responseData);
     }
 
     /**

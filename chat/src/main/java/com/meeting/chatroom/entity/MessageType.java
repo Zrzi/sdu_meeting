@@ -57,7 +57,17 @@ public enum MessageType {
     /**
      * 心跳
      */
-    HEARTBEAT(11, "heartbeat");
+    HEARTBEAT(11, "heartbeat"),
+
+    /**
+     * 删除好友
+     */
+    REMOVE_FRIEND(12, "remove_friend"),
+
+    /**
+     * 响应好友删除
+     */
+    REPLY_REMOVE_FRIEND(13, "reply_remove_friend");
 
     private final int type;
     private final String text;

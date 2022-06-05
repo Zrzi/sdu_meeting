@@ -55,10 +55,21 @@ public class OnOpenService {
                     return map;
                 })
                 .collect(Collectors.toList());
+        List<Map<String, Object>> removes = messageMapper
+                .findMessageByToIdAndStatus(uid, 4)
+                .stream()
+                .map((remove) -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", remove.getId());
+                    map.put("uid", remove.getFromId());
+                    return map;
+                })
+                .collect(Collectors.toList());
         ResponseData responseData = new ResponseData(200, "ok");
         responseData.getData().put("friends", friends);
         responseData.getData().put("messages", messages);
         responseData.getData().put("requests", requests);
+        responseData.getData().put("removes", removes);
         return responseData;
     }
 
