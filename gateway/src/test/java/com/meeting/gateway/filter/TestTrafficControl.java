@@ -43,10 +43,8 @@ public class TestTrafficControl {
         for (Future<ResponseData> result : list) {
             try {
                 System.out.println(result.get().getMessage());
-            } catch (InterruptedException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 System.out.println(e.getMessage());
-            } catch (ExecutionException exception) {
-                System.out.println(exception.getMessage());
             }
         }
     }

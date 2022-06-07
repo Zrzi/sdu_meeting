@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 
 @Component
@@ -21,6 +22,13 @@ public class Router {
 
     public void setServices(List<Service> services) {
         this.services = services;
+    }
+
+    @PostConstruct
+    public void postConstruct() {
+        for (Service service : services) {
+            service.init();
+        }
     }
 
 }

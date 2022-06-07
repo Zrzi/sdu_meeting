@@ -3,6 +3,8 @@ package com.meeting.gateway.entity;
 import com.meeting.gateway.balance.LoadBalancer;
 import com.meeting.gateway.balance.impl.DefaultLoadBalancer;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -13,11 +15,21 @@ public class Service {
     private String path;
     private String[] ip;
     private final AtomicCounter counter = new AtomicCounter();
-    private final LoadBalancer balancer = new DefaultLoadBalancer();
+
     /**
-     * 流量控制
+     * LoadBalancer的类型
      */
-    private final AtomicInteger controller = new AtomicInteger(3000);
+    private String balancerClass;
+    private LoadBalancer balancer;
+
+    /**
+     * 流量控制初始值
+     */
+    private int controllerInit;
+    /**
+     * 流量控制初始值
+     */
+    private AtomicInteger controller;
 
     public Service() {}
 
@@ -66,6 +78,31 @@ public class Service {
     public String getNextIp() {
         int index = balancer.getNextService(this.ip.length);
         return this.ip[index];
+    }
+
+    public String getBalancerClass() {
+        return balancerClass;
+    }
+
+    public void setBalancerClass(String balancerClass) {
+        this.balancerClass = balancerClass;
+    }
+
+    public int getControllerInit() {
+        return controllerInit;
+    }
+
+    public void setControllerInit(int controllerInit) {
+        this.controllerInit = controllerInit;
+    }
+
+    public void init() {
+        this.controller = new AtomicInteger(this.controllerInit);
+        try {
+            this.balancer = (LoadBalancer) Class.forName(this.balancerClass).newInstance();
+        } catch (ClassNotFoundException  | InstantiationException | IllegalAccessException exception) {
+            this.balancer = new DefaultLoadBalancer();
+        }
     }
 
     /**

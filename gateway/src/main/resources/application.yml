@@ -16,20 +16,30 @@ router:
       path: /login_and_register
       ip:
         - http://127.0.0.1:8000
+      balancerClass: com.meeting.gateway.balance.impl.DefaultLoadBalancer
+      controllerInit: 5
     - serviceName: file
       path: /file
       ip:
         - http://127.0.0.1:8001
+      balancerClass: com.meeting.gateway.balance.impl.DefaultLoadBalancer
+      controllerInit: 3000
     - serviceName: chat
       path: /chat
       ip:
         - http://127.0.0.1:8005
+      balancerClass: com.meeting.gateway.balance.impl.DefaultLoadBalancer
+      controllerInit: 3000
     - serviceName: meeting
       path: /meeting
       ip:
         - http://121.40.95.78:4000
+      balancerClass: com.meeting.gateway.balance.impl.DefaultLoadBalancer
+      controllerInit: 3000
     - serviceName: test
       path: /test
       ip:
         - http://127.0.0.1:8900
         - http://127.0.0.1:8901
+      balancerClass: com.meeting.gateway.balance.impl.DefaultLoadBalancer
+      controllerInit: 3000
