@@ -19,12 +19,12 @@ public class TestController {
     public ResponseData testAuthority(@RequestHeader(value = "Authorization", required = false) String authorization,
                                       @RequestParam("value1") Integer value1,
                                       @RequestParam("value2") Integer value2) {
-        System.out.println(value1);
-        System.out.println(value2);
+        // System.out.println(value1);
+        // System.out.println(value2);
         if (authorization == null || !jwtTokenUtil.validateToken(authorization)) {
             return new ResponseData(403, "未登录");
         }
-        System.out.println(authorization);
+        // System.out.println(authorization);
         return new ResponseData(200, "ok");
     }
 

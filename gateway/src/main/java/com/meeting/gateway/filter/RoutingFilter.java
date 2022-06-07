@@ -60,6 +60,7 @@ public class RoutingFilter implements Filter {
             if (service.degrade() <= 0) {
                 logger.info("访问{}，服务降级", uri);
                 responseData = new ResponseData(400, "服务繁忙，稍后再试");
+                // response.setStatus(200);
                 response.setStatus(400);
                 service.upgrade();
             } else {
